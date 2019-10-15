@@ -3,6 +3,7 @@
 using namespace std;
 
 namespace nurikabe {
+
     puzzle_factory::puzzle_factory(int passed_order)
     {
         puzzle_factory::order = passed_order;
