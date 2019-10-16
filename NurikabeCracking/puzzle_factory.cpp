@@ -4,12 +4,60 @@ using namespace std;
 
 namespace nurikabe {
 
+    int puzzle_factory::get_order()
+    {
+        return puzzle_factory::order;
+    }
+
+    int puzzle_factory::get_total_pattern_count()
+    {
+        return puzzle_factory::total_patterns;
+    }
+
+    void puzzle_factory::set_good_patterns(int good_patterns)
+    {
+        puzzle_factory::good_patterns = good_patterns;
+    }
+
+    int puzzle_factory::get_good_patterns()
+    {
+        return puzzle_factory::good_patterns;
+    }
+
+    void puzzle_factory::set_bad_patterns(int patterns)
+    {
+        puzzle_factory::bad_patterns = patterns;
+    }
+
+    int puzzle_factory::get_bad_patterns()
+    {
+        return puzzle_factory::bad_patterns;
+    }
+
+    void puzzle_factory::set_good_seeds(vector<int> seeds) {
+        puzzle_factory::good_seeds = seeds;
+    }
+
+    vector<int> puzzle_factory::get_good_seeds() {
+        return puzzle_factory::good_seeds;
+    }
+
     puzzle_factory::puzzle_factory(int passed_order)
     {
-        puzzle_factory::order = passed_order;
-        puzzle_factory::generate_border_table(order);
-        puzzle_factory::generate_database(order);
-        puzzle_factory::test_all_patterns();       
+        if (passed_order > 1) {
+            puzzle_factory::order = passed_order;
+            puzzle_factory::generate_seed_table(order);
+            puzzle_factory::generate_database(order);
+            if (order == 2) {
+                puzzle_factory::test_small_patterns();
+            }
+            else if (order > 2) {
+                puzzle_factory::test_all_patterns();
+            }
+        }
+        else {
+            cout << "Error: Cannot generate patterns for that integer." << endl;
+        }
     }
 
     puzzle_factory::~puzzle_factory()
@@ -25,7 +73,9 @@ namespace nurikabe {
         return puzzle_factory::seed_table;
     }
 
-    void puzzle_factory::generate_border_table(int order) {
+    void puzzle_factory::generate_seed_table(int order) {
+
+        // Initialize the space for the table with all false.
         vector<vector<bool>> table;
         int bit_length = pow(2, order);
 
@@ -37,27 +87,77 @@ namespace nurikabe {
             table.push_back(row);
         }
 
+        // Initialize a two row matrix.
         vector<vector<char>> matrix(2);
+
+        // 
         for (int i = 0; i < bit_length; i++) {
             matrix[0] = puzzle_factory::gen_row(i, order);
             for (int j = 0; j < bit_length; j++) {
                 if (table[i][j] == false) {
                     matrix[1] = puzzle_factory::gen_row(j, order);
-                    vector<vector<char>> copy_matrix = matrix;
-                    if (!puzzle_factory::has_pool(matrix, order)) {                       
-                        int water = puzzle_factory::count_water(matrix);
+                    if (!puzzle_factory::has_pool(matrix, order)) {
+                        vector<vector<char>> copy_matrix = matrix;
+                        int water = puzzle_factory::count_water(copy_matrix);
+                        int top_row_water = matrix[0].size() -
+                            accumulate(copy_matrix[0].begin(), copy_matrix[0].end(), 0);
+
+                        if (water > 0) {
+                            if (water != top_row_water) {
+                                for (int k = 0; k < matrix[1].size(); k++) {
+                                    if (copy_matrix[1][k] == 0) {
+                                        int point[2] = { 1, k };
+                                        puzzle_factory::traverse(copy_matrix, point, 0, 1);
+                                    }
+                                }
+                                if (matrix[0].size() -
+                                    accumulate(copy_matrix[0].begin(),
+                                        copy_matrix[0].end(), 0) == 0) {
+
+                                    table[i][j] = true;
+                                }
+                            }
+                            else {
+                                for (int k = 0; k < matrix[0].size() - 1; k++) {
+                                    if (matrix[0][k] == 0) {
+                                        int point[2] = { 0, k };
+                                        puzzle_factory::traverse(copy_matrix, point, 0, 1);
+                                        break;
+                                    }
+                                }
+                                if (accumulate(copy_matrix[0].begin(), copy_matrix[0].end(), 0)
+                                    == copy_matrix[0].size()) {
+                                    table[i][j] = true;
+                                }
+                            }
+                        }
+                        else {
+                            table[i][j] = true;
+                            table[j][i] = true;
+                        }
+                        /*for (int k = 0; k < matrix[0].size(); k++) {
+                            if (copy_matrix[0][k] == 0) {
+                                int point[2] = { 0, k };
+                                puzzle_factory::traverse(copy_matrix, point, 0, 1);
+                            }
+                        }
+                        if (accumulate(copy_matrix[0].begin(), copy_matrix[0].end(), 0)
+                            == copy_matrix[0].size()) {
+                            table[i][j] = true;
+                        }*/
+                        /*int water = puzzle_factory::count_water(matrix);
                         for (int k = 0; k < order; k++) {
                             int point[2] = { 1, k };
-                            if (matrix[1][k] == 0) {                              
+                            if (matrix[1][k] == 0) {
                                 water -= puzzle_factory::traverse(copy_matrix, point, 0, 1);
-                            }                                                    
+                            }
                             if (water == 0) {
                                 table[i][j] = true;
                                 break;
                             }
-                        }
+                        }*/
                     }
-                }              
+                }
             }
         }
         puzzle_factory::seed_table = table;
@@ -66,22 +166,22 @@ namespace nurikabe {
     void puzzle_factory::generate_database(int order) {
         vector<vector<vector<bool>>> database;
         vector<vector<bool>> table;
-        vector<bool> row; 
+        vector<bool> row;
         int high_num = pow(2, order);
 
-        // Initialize a boolean database with all values set to true
+        // Initialize a boolean database with all values set to false
         for (int i = 0; i < high_num; i++) {
             row.push_back(false);
         }
 
         for (int j = 0; j < high_num; j++) {
-                table.push_back(row);
+            table.push_back(row);
         }
 
-        for(int k = 0; k < high_num; k++){
+        for (int k = 0; k < high_num; k++) {
             database.push_back(table);
         }
-        
+
         // We want to test against all possible combinations of three rows that generate
         // pools, or any combinations that generate isolated water tiles in the second row.
         // Since we're testing all combinations, we don't have to check if the n x 3 matrix
@@ -91,32 +191,100 @@ namespace nurikabe {
         vector<char> first_row;
         vector<char> second_row;
         vector<char> third_row;
-        
+
         // Performing row generation only when necessary dramatically reduces wasted cycles.
-        try {
-            for (int i = 0; i < high_num; i++) {
-                // Top row generation.
-                first_row = puzzle_factory::gen_row(i, order);
-                for (int j = 0; j < high_num; j++) {
-                    // Second row generation.
-                    second_row = puzzle_factory::gen_row(j, order);
-                    for (int k = 0; k < high_num; k++) {
-                        // Third row generation.
-                        third_row = puzzle_factory::gen_row(k, order);
-                        // Perform rule checking for this set of rows.
-                        matrix = { first_row, second_row, third_row };
-                        if (!puzzle_factory::has_pool(matrix, order)
-                            && puzzle_factory::is_contiguous(matrix)) {
+        for (int i = 0; i < high_num; i++) {
+            // Top row generation.
+            first_row = puzzle_factory::gen_row(i, order);
+            for (int j = 0; j < high_num; j++) {
+                // Second row generation.
+                second_row = puzzle_factory::gen_row(j, order);
+                for (int k = 0; k < high_num; k++) {
+                    // Third row generation.
+                    third_row = puzzle_factory::gen_row(k, order);
+                    // Construct a matrix with these rows.
+                    matrix = { first_row, second_row, third_row };
+                    // Get count of water in the matrix.
+                    int water = puzzle_factory::count_water(matrix);
+                    // If there is no pool.
+
+                    if (water == 0) {
+                        database[i][j][k] = true;
+                    }
+                    else if (!puzzle_factory::has_pool(matrix, order)) {
+
+                        int top_water = matrix[0].size() -
+                            accumulate(matrix[0].begin(), matrix[0].end(), 0);
+                        int mid_water = matrix[1].size() -
+                            accumulate(matrix[1].begin(), matrix[1].end(), 0);
+                        int btm_water = matrix[2].size() -
+                            accumulate(matrix[2].begin(), matrix[2].end(), 0);
+                        vector<vector<char>> temp = matrix;
+
+                        if (water == top_water) {
                             database[i][j][k] = true;
                         }
+                        else if (water == btm_water) {
+                            database[i][j][k] = true;
+                        }
+                        else if (mid_water > 0) {
+                            
+                        }
+
+                        /*if (btm_water > 0 && top_water > 0 && mid_water == 0) {
+                            database[i][j][k] = false;
+                        }
+                        else if (mid_water > 0 && top_water > 0 || btm_water > 0) {
+                            for (int n = 0; n < matrix[0].size(); n++) {
+
+                                if (matrix[0][n] == 0) {
+                                    int point[2] = { 0, n };
+                                    puzzle_factory::traverse(temp, point, 0, 1);
+                                }
+
+                                if (matrix[1][n] == 0) {
+                                    int point[2] = { 1, n };
+                                    puzzle_factory::traverse(temp, point, 0, 1);
+                                }
+                                
+                            }
+                            int temp_second_row_water = temp[1].size() - 
+                                accumulate(temp[1].begin(), temp[1].end(), 0);
+
+                            if (temp_second_row_water != 0) {
+                                database[i][j][k] = false;
+                            }
+                        }
+                        else if (water == mid_water) {
+                            if (mid_water != matrix[1].size()) {
+                                if (matrix[1][0] != 0 && matrix[1][matrix[1].size() - 1] != 0) {
+                                    database[i][j][k] = false;
+                                }
+                                else {
+                                    if (matrix[1][0] == 0) {
+                                        int point[2] = { 1, 0 };
+                                        puzzle_factory::traverse(temp, point, 0, 1);
+                                    }
+                                    else if (matrix[1][matrix[1].size() - 1] == 0) {
+                                        int point[2] = { 1, matrix[1].size() - 1 };
+                                        puzzle_factory::traverse(temp, point, 0, 1);
+                                    }
+
+                                    int temp_second_row_water = temp[1].size() -
+                                        accumulate(temp[1].begin(), temp[1].end(), 0);
+
+                                    if (temp_second_row_water != 0) {
+                                        database[i][j][k] = false;
+                                    }
+                                }
+                            }
+                        }*/
+
                     }
                 }
             }
         }
-        catch (const exception& oor){
-            cout << oor.what();
-        }
-        
+
         // The resultant database should be a complete check against faulty patterns when
         // combined with the edge rows table and column checking.
         puzzle_factory::middle_rows_database = database;
@@ -156,7 +324,7 @@ namespace nurikabe {
     // Overloaded has_pool, takes a char matrix as a parameter instead of seeds.
     bool puzzle_factory::has_pool(vector<vector<char>> matrix, int order) {
         int length = matrix[0].size();
-      
+
         for (int i = 0; i < matrix.size() - 1; i++) {
             char prev_res = 1;
             for (int j = 0; j < matrix[1].size(); j++) {
@@ -177,14 +345,14 @@ namespace nurikabe {
         int water = 0;
 
         for (int i = 0; i < matrix.size(); i++) {
-            water +=  (matrix[i].size() - accumulate(matrix[i].begin(), matrix[i].end(), 0));
+            water += (matrix[i].size() - accumulate(matrix[i].begin(), matrix[i].end(), 0));
         }
 
         return water;
     }
 
 
-    int puzzle_factory::traverse(vector<vector<char>> &matrix, int point[], 
+    int puzzle_factory::traverse(vector<vector<char>> &matrix, int point[],
         int water, char path_char) {
         // Path character indicates what you want to replace a water tile with to show
         // you've been there before. Highly recommended to not make this '0'.
@@ -220,42 +388,10 @@ namespace nurikabe {
         return water;
     }
 
-    int puzzle_factory::get_order()
-    {
-        return puzzle_factory::order;
-    }
 
-    int puzzle_factory::get_total_pattern_count()
-    {
-        return puzzle_factory::total_patterns;
-    }
 
-    void puzzle_factory::set_good_patterns(int good_patterns)
-    {
-        puzzle_factory::good_patterns = good_patterns;
-    }
+    void puzzle_factory::test_small_patterns() {
 
-    int puzzle_factory::get_good_patterns()
-    {
-        return puzzle_factory::good_patterns;
-    }
-
-    void puzzle_factory::set_bad_patterns(int patterns)
-    {
-        puzzle_factory::bad_patterns = patterns;
-    }
-
-    int puzzle_factory::get_bad_patterns()
-    {
-        return puzzle_factory::bad_patterns;
-    }
-
-    void puzzle_factory::set_good_seeds(vector<int> seeds) {
-        puzzle_factory::good_seeds = seeds;
-    }
-
-    vector<int> puzzle_factory::get_good_seeds() {
-        return puzzle_factory::good_seeds;
     }
 
     void puzzle_factory::test_all_patterns()
@@ -270,24 +406,24 @@ namespace nurikabe {
         /*for (int vec_pos = 1; vec_pos < vec_length; vec_pos++) {
             vec_pos_values.push_back(pow(2, vec_pos));
         }*/
-        
+
         // Initialize row seeds to all 0's of the correct length.
         for (int i = 0; i < vec_length; i++) {
             row_seeds.push_back(0);
         }
 
         int row_range = row_seeds.size() - 1;
-        
-        for (int i = 0; i < pow(2, pow(2, vec_length)); i++) {
+
+        for (int i = 0; i < pow(2, pow(vec_length, 2)); i++) {
             // Get the position for the bottom row of the vector, or the last element.
             // Check if the top two rows are legal, then check if the bottom 
             // two rows are legal.
-            
-            if (puzzle_factory::check_matrix(row_seeds) 
+
+            if (puzzle_factory::check_matrix(row_seeds)
                 && puzzle_factory::check_matrix(puzzle_factory::get_column_seeds(row_seeds))) {
                 good_seeds.push_back(i);
             }
-          
+
             row_seeds[row_range]++;
 
             if (row_seeds[row_range] > max_val) {
@@ -299,7 +435,7 @@ namespace nurikabe {
                 }
             }
 
-                       
+
             /*int seed = i;
             for (int vec_pos = vec_length - 1; vec_pos >= 0; vec_pos--) {
                 if (seed >= vec_pos_values[vec_pos]) {
@@ -308,7 +444,8 @@ namespace nurikabe {
             }*/
         }
         puzzle_factory::set_good_patterns(puzzle_factory::good_seeds.size());
-        puzzle_factory::set_bad_patterns(pow(2, order*order) - puzzle_factory::get_good_patterns());
+        puzzle_factory::set_bad_patterns(pow(2, order*order)
+            - puzzle_factory::get_good_patterns());
     }
 
     bool puzzle_factory::check_matrix(vector<int> seeds) {
@@ -319,12 +456,10 @@ namespace nurikabe {
         if (puzzle_factory::seed_table[seeds[0]][seeds[1]] &&
             puzzle_factory::seed_table[seeds[vec_manip_pos]][seeds[vec_manip_pos - 1]]) {
             // Check to make sure there are no middle isolated water tiles.
-            for (int j = 0; j < puzzle_factory::order - 2; j++) {
-                if (puzzle_factory::middle_rows_database[j][j + 1][j + 2]) {
-                    // Passes the top and bottom row checks but fails
-                    // the middle rows check.
-                    return false;
-                }
+            if (puzzle_factory::middle_rows_database[seeds[0]][seeds[1]][seeds[2]]) {
+                // Passes the top and bottom row checks but fails
+                // the middle rows check.
+                return false;
             }
         }
         // Fails the top or bottom row checks.
@@ -363,14 +498,18 @@ namespace nurikabe {
     bool puzzle_factory::is_contiguous(vector<vector<char>> matrix) {
         vector<vector<char>> temp = matrix;
         int water = puzzle_factory::count_water(temp);
-        int second_row_water = accumulate(temp[1].begin(), temp[1].end(), 0);
+        int second_row_water = temp[1].size() - accumulate(temp[1].begin(), temp[1].end(), 0);
         int traversed_water;
 
         // Check if the second row is a straight wall of water.
-        if (temp[1].size() - second_row_water == temp[1].size()) {
+        if (temp[1].size() - second_row_water == 0) {
             return true;
         }
-        
+
+        if (temp[1].size() - second_row_water == temp[1].size()) {
+            return false;
+        }
+
         // Check if all water in the temp is in the second row
         if (water == second_row_water) {
             // If they are equivalent determine if all water can be reached from one side.
@@ -388,7 +527,7 @@ namespace nurikabe {
         }
         // If there exists water, but none of it is in the second row, the pattern
         // is not contiguous.
-        else if (second_row_water == 0 && water > 0){
+        else if (second_row_water == 0 && water > 0) {
             return false;
         }
         // For all other cases, if not all of the water is in the second row,
@@ -445,10 +584,10 @@ namespace nurikabe {
             }
             else {
                 value = 0;
-            }           
+            }
             seed += value;
         }
         return seed;
     }
-    
+
 }

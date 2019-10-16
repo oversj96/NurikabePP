@@ -17,7 +17,7 @@ namespace nurikabe {
 
         vector<vector<bool>> get_table();
 
-        void generate_border_table(int order);
+        void generate_seed_table(int order);
 
         // Generate the seed space (three dimensional table) given a matrix order with nurakabe
         // rules
@@ -52,6 +52,8 @@ namespace nurikabe {
         int get_bad_patterns();
         // Test all possible patterns and set the pattern counts.
         void test_all_patterns();
+
+        void test_small_patterns();
 
         void set_good_seeds(vector<int> seeds);
 
