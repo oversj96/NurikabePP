@@ -253,7 +253,7 @@ namespace nurikabe {
                                 database[i][j][k] = true;
                                 continue;
                             }
-                            else if (mid_water == matrix[1].size()){
+                            else if (mid_water == matrix[1].size()) {
                                 database[i][j][k] = true;
                                 continue;
                             }
