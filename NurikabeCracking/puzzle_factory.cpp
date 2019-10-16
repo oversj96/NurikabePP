@@ -44,7 +44,7 @@ namespace nurikabe {
 
     puzzle_factory::puzzle_factory(int passed_order)
     {
-        if (passed_order > 1) {
+        if (passed_order > 2) {
             puzzle_factory::order = passed_order;
             puzzle_factory::generate_seed_table(order);
             puzzle_factory::generate_database(order);
@@ -56,7 +56,7 @@ namespace nurikabe {
             }
         }
         else {
-            cout << "Error: Cannot generate patterns for that integer." << endl;
+            cout << "Error: Cannot generate patterns for that integer. Not yet." << endl;
         }
     }
 
@@ -163,6 +163,23 @@ namespace nurikabe {
         puzzle_factory::seed_table = table;
     }
 
+    bool puzzle_factory::is_contiguous_row(vector<char> row) {
+        int water = 0;
+        for (int i = 0; i < row.size() - 1; i++) {
+            if (row[i] == 0) {
+                water++;
+            }
+        }
+
+        for (int i = 1; i < row.size() - 2; i++) {
+            if (row[i] == 0 && row[i + 1] == 0 || row[i - 1] == 0) {
+                water--;
+            }
+        }
+
+        return water == 0;
+    }
+
     void puzzle_factory::generate_database(int order) {
         vector<vector<vector<bool>>> database;
         vector<vector<bool>> table;
@@ -223,12 +240,26 @@ namespace nurikabe {
 
                         if (water == top_water) {
                             database[i][j][k] = true;
+                            continue;
                         }
                         else if (water == btm_water) {
                             database[i][j][k] = true;
+                            continue;
                         }
                         else if (mid_water > 0) {
-                            
+
+                            if (mid_water == 1 && (matrix[1][0] == 0
+                                || matrix[1][matrix.size() - 1] == 0)) {
+                                database[i][j][k] = true;
+                                continue;
+                            }
+                            else if (mid_water == matrix[1].size()){
+                                database[i][j][k] = true;
+                                continue;
+                            }
+                            else {
+                                database[i][j][k] = puzzle_factory::pathable(temp);
+                            }
                         }
 
                         /*if (btm_water > 0 && top_water > 0 && mid_water == 0) {
@@ -246,9 +277,9 @@ namespace nurikabe {
                                     int point[2] = { 1, n };
                                     puzzle_factory::traverse(temp, point, 0, 1);
                                 }
-                                
+
                             }
-                            int temp_second_row_water = temp[1].size() - 
+                            int temp_second_row_water = temp[1].size() -
                                 accumulate(temp[1].begin(), temp[1].end(), 0);
 
                             if (temp_second_row_water != 0) {
@@ -339,6 +370,25 @@ namespace nurikabe {
             }
         }
         return false;
+    }
+
+    bool puzzle_factory::pathable(vector<vector<char>> matrix) {
+        bool way_up = false;
+        bool way_down = false;
+        if (puzzle_factory::is_contiguous_row(matrix[1])) {
+            for (int i = 0; i < matrix[1].size() - 1; i++) {
+                if (matrix[1][i] == 0 && matrix[0][i] == 0) {
+                    way_up = true;
+                }
+                if (matrix[1][i] == 0 && matrix[2][i] == 0) {
+                    way_down = true;
+                }
+
+                if (way_up && way_down) {
+                    return true;
+                }
+            }
+        }
     }
 
     int puzzle_factory::count_water(vector<vector<char>> matrix) {
@@ -456,7 +506,7 @@ namespace nurikabe {
         if (puzzle_factory::seed_table[seeds[0]][seeds[1]] &&
             puzzle_factory::seed_table[seeds[vec_manip_pos]][seeds[vec_manip_pos - 1]]) {
             // Check to make sure there are no middle isolated water tiles.
-            if (puzzle_factory::middle_rows_database[seeds[0]][seeds[1]][seeds[2]]) {
+            if (!puzzle_factory::middle_rows_database[seeds[0]][seeds[1]][seeds[2]]) {
                 // Passes the top and bottom row checks but fails
                 // the middle rows check.
                 return false;

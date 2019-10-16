@@ -40,6 +40,11 @@ namespace nurikabe {
         int traverse(vector<vector<char>> &matrix, int point[], int water, char path_char);
         // Retrives the game order, or in otherwords, the dimensions of the square matrix.
         int get_order();
+
+        bool pathable(vector<vector<char>> matrix);
+
+        bool is_contiguous_row(vector<char> row);
+
         // Getter function to retrieve game's total possible pattern size.
         int get_total_pattern_count();
         // Sets the good pattern count.
