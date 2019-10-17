@@ -46,18 +46,35 @@ namespace nurikabe {
     {
         if (passed_order > 2) {
             puzzle_factory::order = passed_order;
+
+            auto start = std::chrono::high_resolution_clock::now();
             puzzle_factory::generate_seed_table(order);
             puzzle_factory::generate_database(order);
+            auto stop = std::chrono::high_resolution_clock::now();
+
+            auto diff = stop - start;
+
+            cout << "Database generation took: " <<
+                std::chrono::duration_cast<std::chrono::milliseconds>(diff).count()
+                << " milliseconds" << endl;
+
+            auto start2 = std::chrono::high_resolution_clock::now();
             if (order == 2) {
                 puzzle_factory::test_small_patterns();
             }
             else if (order > 2) {
                 puzzle_factory::test_all_patterns();
             }
+            auto stop2 = std::chrono::high_resolution_clock::now();
+            auto diff2 = stop2 - start2;
+            cout << "Pattern testing took: " <<
+                std::chrono::duration_cast<std::chrono::milliseconds>(diff2).count()
+                << " milliseconds" << endl;
         }
         else {
             cout << "Error: Cannot generate patterns for that integer. Not yet." << endl;
         }
+        
     }
 
     puzzle_factory::~puzzle_factory()
@@ -163,21 +180,28 @@ namespace nurikabe {
         puzzle_factory::seed_table = table;
     }
 
-    bool puzzle_factory::is_contiguous_row(vector<char> row) {
-        int water = 0;
+    vector<vector<int>> puzzle_factory::get_contiguous_segments(vector<char> row) {
+        vector<vector<int>> segments;
+        vector<int> spots;
+
         for (int i = 0; i < row.size() - 1; i++) {
-            if (row[i] == 0) {
-                water++;
+            if ((i != row.size() - 1) && (row[i] == 0) && (row[i+1] == 0)) {
+                spots.push_back(i);
+            }
+            // Finish segmentation code
+            //
+            //
+            //
+            else if (row[i] == 0) {
+                spots.push_back(i);
+
+                segments.push_back(spots);
+
+                spots.clear();
             }
         }
 
-        for (int i = 1; i < row.size() - 2; i++) {
-            if (row[i] == 0 && row[i + 1] == 0 || row[i - 1] == 0) {
-                water--;
-            }
-        }
-
-        return water == 0;
+        return segments;
     }
 
     void puzzle_factory::generate_database(int order) {
@@ -375,7 +399,8 @@ namespace nurikabe {
     bool puzzle_factory::pathable(vector<vector<char>> matrix) {
         bool way_up = false;
         bool way_down = false;
-        if (puzzle_factory::is_contiguous_row(matrix[1])) {
+        vector<vector<int>> segments = puzzle_factory::get_contiguous_segments(matrix[1]);
+        if (segments.size() > 0) {
             for (int i = 0; i < matrix[1].size() - 1; i++) {
                 if (matrix[1][i] == 0 && matrix[0][i] == 0) {
                     way_up = true;
@@ -383,12 +408,14 @@ namespace nurikabe {
                 if (matrix[1][i] == 0 && matrix[2][i] == 0) {
                     way_down = true;
                 }
-
-                if (way_up && way_down) {
-                    return true;
-                }
             }
         }
+        if (way_up && way_down) {
+            return true;
+        }
+        else {
+            return false;
+        }     
     }
 
     int puzzle_factory::count_water(vector<vector<char>> matrix) {
@@ -609,6 +636,31 @@ namespace nurikabe {
 
         // If no cases trip falsehood, it must be true.
         return true;
+    }
+
+    string puzzle_factory::to_string_matrix(int seed) {
+        vector<char> bin_vec = puzzle_factory::gen_row(seed, order*order);
+        string ret = "";
+
+        for (int i = 0; i < order; i++) {
+            if (i > 0) {
+                ret += "\n";
+            }
+            for (int j = 0 + (i * order); j < order + (i * order); j++) {
+                ret += (to_string(bin_vec[j]) + " ");
+            }
+        }    
+        return ret;
+    }
+
+    void puzzle_factory::print_all_matrices(int columns) {
+
+        cout << "Matrix Order: " << order << "x" << order << endl;
+        string row = "";
+        for (int i = 0; i < good_seeds.size() - 1; i++) {
+            cout << "seed: " << to_string(good_seeds[i]) << endl;
+            cout << (puzzle_factory::to_string_matrix(good_seeds[i])) << endl;;
+        }
     }
 
     vector<char> puzzle_factory::gen_row(int seed, int desired_length) {

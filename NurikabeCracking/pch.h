@@ -13,8 +13,10 @@
 #include <string>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <numeric>
 #include <algorithm>
+#include <chrono>
 #include "puzzle_factory.h"
 // TODO: add headers that you want to pre-compile here
 

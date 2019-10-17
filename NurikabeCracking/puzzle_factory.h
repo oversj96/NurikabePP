@@ -2,7 +2,8 @@
 #define PUZZLE_FACTORY_H
 #include "pch.h"
 
-using namespace std;
+using std::vector;
+using std::string;
 
 namespace nurikabe {
 
@@ -43,7 +44,7 @@ namespace nurikabe {
 
         bool pathable(vector<vector<char>> matrix);
 
-        bool is_contiguous_row(vector<char> row);
+        vector<vector<int>> get_contiguous_segments(vector<char> row);
 
         // Getter function to retrieve game's total possible pattern size.
         int get_total_pattern_count();
@@ -60,9 +61,13 @@ namespace nurikabe {
 
         void test_small_patterns();
 
+        void print_all_matrices(int columns);
+
         void set_good_seeds(vector<int> seeds);
 
         bool check_matrix(vector<int> seeds);
+
+        string to_string_matrix(int seed);
 
         vector<int> get_column_seeds(vector<int> seeds);
 

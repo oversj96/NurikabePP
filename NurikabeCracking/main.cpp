@@ -3,12 +3,18 @@
 
 #include "pch.h"
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::to_string;
+using std::string;
 
 int main()
 {
     cout << "\nCounting patterns...\n" << endl;
+    auto start = std::chrono::high_resolution_clock::now();
     nurikabe::puzzle_factory factory(3);
+    auto stop = std::chrono::high_resolution_clock::now();
     cout << "Counting complete. \n"
         << "Good Patterns: " << to_string(factory.get_good_patterns()) << "\n"
         << "Bad Patterns: " << to_string(factory.get_bad_patterns()) << "\n"
@@ -20,7 +26,9 @@ int main()
     // It's very important to properly convert seeds to strings unless you want
     // a wall of unicode characters. 
     if (seeds.size() > 0) {
-        cout << " --  WARNING: Listing may take awhile! --" << endl;
+
+        factory.print_all_matrices(5);
+        /*cout << " --  WARNING: Listing may take awhile! --" << endl;
         cout << " -- Press any button to list the seeds --" << endl;
         string seed_start = to_string(seeds[0]);
         string seed_end;
@@ -37,7 +45,7 @@ int main()
             }
 
         }
-        cout << "Press any key to exit..." << endl;
+        cout << "Press any key to exit..." << endl;*/
         cin.get();
     }
     else {
