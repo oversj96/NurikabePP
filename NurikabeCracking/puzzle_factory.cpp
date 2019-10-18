@@ -44,37 +44,25 @@ namespace nurikabe {
 
     puzzle_factory::puzzle_factory(int passed_order)
     {
-        if (passed_order > 2) {
+        if (passed_order > 1) {
             puzzle_factory::order = passed_order;
-
-            auto start = std::chrono::high_resolution_clock::now();
+            puzzle_factory::good_patterns = 0;
+            puzzle_factory::bad_patterns = 0;
             puzzle_factory::generate_seed_table(order);
-            puzzle_factory::generate_database(order);
-            auto stop = std::chrono::high_resolution_clock::now();
-
-            auto diff = stop - start;
-
-            cout << "Database generation took: " <<
-                std::chrono::duration_cast<std::chrono::milliseconds>(diff).count()
-                << " milliseconds" << endl;
-
-            auto start2 = std::chrono::high_resolution_clock::now();
-            if (order == 2) {
-                puzzle_factory::test_small_patterns();
+            if (order > 2) {
+                puzzle_factory::generate_database(order);
+                vector<int> seeds_container;
+                puzzle_factory::set_builder("start", seeds_container, 0, 0, 0);
             }
             else if (order > 2) {
+
                 puzzle_factory::test_all_patterns();
             }
-            auto stop2 = std::chrono::high_resolution_clock::now();
-            auto diff2 = stop2 - start2;
-            cout << "Pattern testing took: " <<
-                std::chrono::duration_cast<std::chrono::milliseconds>(diff2).count()
-                << " milliseconds" << endl;
         }
         else {
-            cout << "Error: Cannot generate patterns for that integer. Not yet." << endl;
+            cout << "Error: Cannot generate patterns for that integer." << endl;
         }
-        
+
     }
 
     puzzle_factory::~puzzle_factory()
@@ -185,7 +173,7 @@ namespace nurikabe {
         vector<int> spots;
 
         for (int i = 0; i < row.size() - 1; i++) {
-            if ((i != row.size() - 1) && (row[i] == 0) && (row[i+1] == 0)) {
+            if ((i != row.size() - 1) && (row[i] == 0) && (row[i + 1] == 0)) {
                 spots.push_back(i);
             }
             // Finish segmentation code
@@ -401,13 +389,16 @@ namespace nurikabe {
         bool way_down = false;
         vector<vector<int>> segments = puzzle_factory::get_contiguous_segments(matrix[1]);
         if (segments.size() > 0) {
-            for (int i = 0; i < matrix[1].size() - 1; i++) {
-                if (matrix[1][i] == 0 && matrix[0][i] == 0) {
-                    way_up = true;
+            for (int i = 0; i < segments.size(); i++) {
+                for (int j = 0; j < segments[i].size(); j++) {
+                    if (matrix[1][segments[i][j]] == 0 && matrix[0][segments[i][j]] == 0) {
+                        way_up = true;
+                    }
+                    if (matrix[1][segments[i][j]] == 0 && matrix[2][segments[i][j]] == 0) {
+                        way_down = true;
+                    }
                 }
-                if (matrix[1][i] == 0 && matrix[2][i] == 0) {
-                    way_down = true;
-                }
+
             }
         }
         if (way_up && way_down) {
@@ -415,7 +406,7 @@ namespace nurikabe {
         }
         else {
             return false;
-        }     
+        }
     }
 
     int puzzle_factory::count_water(vector<vector<char>> matrix) {
@@ -465,10 +456,88 @@ namespace nurikabe {
         return water;
     }
 
-
-
     void puzzle_factory::test_small_patterns() {
 
+    }
+
+    void puzzle_factory::set_builder(string flag, vector<int> seeds, int depth, int top_seed, int bottom_seed) {
+        depth++;
+        if (flag == "start") {
+            for (int i = 0; i < pow(2, order); i++) {             
+                for (int j = 0; j < pow(2, order); j++) {
+                    seeds.clear();
+                    seeds.push_back(i);
+                    seeds.push_back(j);
+                    puzzle_factory::set_builder("", seeds, depth, i, j);
+                }
+            }
+            cout << "Count: " << puzzle_factory::good_patterns << endl;
+            cin.get();
+        }
+        else {        
+            if (order > 2) {
+                for (int i = 0; i < pow(2, order); i++) {
+                    vector<int> add_seeds = seeds;
+                    if (seed_table[top_seed][i] && seed_table[bottom_seed][i] && middle_rows_database[top_seed][i][bottom_seed]) {
+                        auto it_pos = add_seeds.end() - 1;
+                        auto it = add_seeds.insert(it_pos, i);
+                        if (add_seeds.size() < order) {
+                            puzzle_factory::set_builder("", add_seeds, depth, i, bottom_seed);
+                        }
+                        else {
+                            //cout << "Matrix -- " << endl;
+                            /*for (int j = 0; j < order; j++) {
+                                cout << puzzle_factory::gen_row(add_seeds[j]) << endl;
+                            }*/
+                            puzzle_factory::good_patterns++;
+                        }
+                    }
+                }
+            }
+            else {
+                for (int i = 0; i < pow(2, order); i++) {
+                    vector<int> add_seeds = seeds;
+                    if (middle_rows_database[top_seed][i][bottom_seed]) {
+                        auto it_pos = add_seeds.end() - 1;
+                        auto it = add_seeds.insert(it_pos, i);
+                        if (add_seeds.size() < order) {
+                            puzzle_factory::set_builder("", add_seeds, depth, i, bottom_seed);
+                        }
+                        else {
+                            cout << "Matrix -- " << endl;
+                            for (int j = 0; j < order; j++) {
+                                cout << puzzle_factory::gen_row(add_seeds[j]) << endl;
+                            }
+                            puzzle_factory::good_patterns++;
+                        }
+                    }
+                }
+            }         
+        }
+
+        
+
+
+        /*int count = 0;
+        for (int i = 0; i < puzzle_factory::seed_table.size(); i++) {
+            for (int j = 0; j < puzzle_factory::seed_table[i].size(); j++) {
+                if (puzzle_factory::seed_table[i][j]) {
+                    for (int k = 0; k < puzzle_factory::seed_table[i].size(); k++) {
+                        if (puzzle_factory::seed_table[k][j] && puzzle_factory::middle_rows_database[i][k][j]) {
+
+
+                            cout << "i: " << to_string(i) << " j: " << to_string(j)
+                                << " k: " << to_string(k) << endl;
+                            cout << puzzle_factory::gen_row(i) << endl;
+                            cout << puzzle_factory::gen_row(j) << endl;
+                            cout << puzzle_factory::gen_row(k) << endl;
+                        }
+                        count++;
+                    }
+                }
+            }
+        }
+        cout << "Count: " << to_string(count) << endl;*/
     }
 
     void puzzle_factory::test_all_patterns()
@@ -649,7 +718,7 @@ namespace nurikabe {
             for (int j = 0 + (i * order); j < order + (i * order); j++) {
                 ret += (to_string(bin_vec[j]) + " ");
             }
-        }    
+        }
         return ret;
     }
 
@@ -674,6 +743,17 @@ namespace nurikabe {
         }
 
         return bit_vector;
+    }
+
+    string puzzle_factory::gen_row(int seed) {
+        vector<char> bin_vec = puzzle_factory::gen_row(seed, order);
+        string ret = "";
+
+        for (int i = 0; i < order; i++) {
+            ret += (to_string(bin_vec[i]) + " ");
+        }
+
+        return ret;
     }
 
     int puzzle_factory::gen_seed(vector<char> bits) {

@@ -13,7 +13,7 @@ int main()
 {
     cout << "\nCounting patterns...\n" << endl;
     auto start = std::chrono::high_resolution_clock::now();
-    nurikabe::puzzle_factory factory(3);
+    nurikabe::puzzle_factory factory(7);
     auto stop = std::chrono::high_resolution_clock::now();
     cout << "Counting complete. \n"
         << "Good Patterns: " << to_string(factory.get_good_patterns()) << "\n"

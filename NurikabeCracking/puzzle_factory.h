@@ -33,6 +33,8 @@ namespace nurikabe {
         // Given an int for a seed and the length of the string, generate the sequence of bits.
         vector<char> gen_row(int seed, int order);
 
+        string gen_row(int seed);
+
         // Given a char vector of bits, convert it into the int it represents.
         int gen_seed(vector<char> bits);
 
@@ -41,6 +43,8 @@ namespace nurikabe {
         int traverse(vector<vector<char>> &matrix, int point[], int water, char path_char);
         // Retrives the game order, or in otherwords, the dimensions of the square matrix.
         int get_order();
+
+        void set_builder(string flag, vector<int> seeds, int depth, int top_seed, int bottom_seed);
 
         bool pathable(vector<vector<char>> matrix);
 
