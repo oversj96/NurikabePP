@@ -42,6 +42,10 @@ namespace nurikabe {
         return puzzle_factory::good_seeds;
     }
 
+    vector<vector<vector<bool>>> puzzle_factory::get_middle_rows_database() {
+        return puzzle_factory::middle_rows_database;
+    }
+
     puzzle_factory::puzzle_factory(int passed_order)
     {
         if (passed_order > 1) {
@@ -68,10 +72,6 @@ namespace nurikabe {
     puzzle_factory::~puzzle_factory()
     {
         // No dynamically allocated memory to dispose of yet.
-    }
-
-    vector<vector<vector<bool>>> puzzle_factory::get_middle_rows_database() {
-        return puzzle_factory::middle_rows_database;
     }
 
     vector<vector<bool>> puzzle_factory::get_table() {
@@ -138,7 +138,6 @@ namespace nurikabe {
                         }
                         else {
                             table[i][j] = true;
-                            table[j][i] = true;
                         }
                         /*for (int k = 0; k < matrix[0].size(); k++) {
                             if (copy_matrix[0][k] == 0) {
@@ -171,24 +170,28 @@ namespace nurikabe {
     vector<vector<int>> puzzle_factory::get_contiguous_segments(vector<char> row) {
         vector<vector<int>> segments;
         vector<int> spots;
+        bool segment = false;
 
-        for (int i = 0; i < row.size() - 1; i++) {
-            if ((i != row.size() - 1) && (row[i] == 0) && (row[i + 1] == 0)) {
-                spots.push_back(i);
+        for (int i = 0; i < row.size(); i++) {
+            if (row[i] == 0){
+                if (!segment) {
+                    spots.clear();
+                    segment = true;
+                    spots.push_back(i);
+                }
+                else {
+                    spots.push_back(i);
+                }
             }
-            // Finish segmentation code
-            //
-            //
-            //
-            else if (row[i] == 0) {
-                spots.push_back(i);
-
+            else if (row[i] == 1 && segment) {
+                segment = false;
                 segments.push_back(spots);
-
-                spots.clear();
-            }
+            }        
         }
-
+        if (segment) {
+            segment = false;
+            segments.push_back(spots);
+        }
         return segments;
     }
 
@@ -340,6 +343,7 @@ namespace nurikabe {
     // ----
     // 0011 -- two consecutive zeros indicate a pool. The algorithm does not generate the
     // entire vector if two consecutive zeros are found.
+
     bool puzzle_factory::has_pool(vector<int> row_seeds, int order) {
         int length = row_seeds.size();
         vector<char> prev_row = gen_row(row_seeds[0], order);
@@ -360,7 +364,6 @@ namespace nurikabe {
             }
             prev_row = row;
         }
-
         return false;
     }
 
@@ -384,12 +387,14 @@ namespace nurikabe {
         return false;
     }
 
-    bool puzzle_factory::pathable(vector<vector<char>> matrix) {
-        bool way_up = false;
-        bool way_down = false;
+    bool puzzle_factory::pathable(vector<vector<char>> matrix) {        
         vector<vector<int>> segments = puzzle_factory::get_contiguous_segments(matrix[1]);
+        vector<bool> segment_pathability(segments.size(), false);
+
         if (segments.size() > 0) {
             for (int i = 0; i < segments.size(); i++) {
+                bool way_up = false;
+                bool way_down = false;
                 for (int j = 0; j < segments[i].size(); j++) {
                     if (matrix[1][segments[i][j]] == 0 && matrix[0][segments[i][j]] == 0) {
                         way_up = true;
@@ -397,16 +402,15 @@ namespace nurikabe {
                     if (matrix[1][segments[i][j]] == 0 && matrix[2][segments[i][j]] == 0) {
                         way_down = true;
                     }
+                    if (way_up && way_down) {
+                        segment_pathability[i] = true;
+                        break;
+                    }
                 }
-
             }
         }
-        if (way_up && way_down) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return std::all_of(std::begin(segment_pathability), 
+            std::end(segment_pathability), [](bool i) { return i; });
     }
 
     int puzzle_factory::count_water(vector<vector<char>> matrix) {
@@ -420,7 +424,7 @@ namespace nurikabe {
     }
 
 
-    int puzzle_factory::traverse(vector<vector<char>> &matrix, int point[],
+    int puzzle_factory::traverse(vector<vector<char>>& matrix, int point[],
         int water, char path_char) {
         // Path character indicates what you want to replace a water tile with to show
         // you've been there before. Highly recommended to not make this '0'.
@@ -478,18 +482,32 @@ namespace nurikabe {
             if (order > 2) {
                 for (int i = 0; i < pow(2, order); i++) {
                     vector<int> add_seeds = seeds;
-                    if (seed_table[top_seed][i] && seed_table[bottom_seed][i] && middle_rows_database[top_seed][i][bottom_seed]) {
+                    if ((seed_table[top_seed][i] && seed_table[bottom_seed][i]) && middle_rows_database[top_seed][i][bottom_seed]) {
                         auto it_pos = add_seeds.end() - 1;
                         auto it = add_seeds.insert(it_pos, i);
                         if (add_seeds.size() < order) {
                             puzzle_factory::set_builder("", add_seeds, depth, i, bottom_seed);
                         }
-                        else {
-                            //cout << "Matrix -- " << endl;
-                            /*for (int j = 0; j < order; j++) {
-                                cout << puzzle_factory::gen_row(add_seeds[j]) << endl;
-                            }*/
-                            puzzle_factory::good_patterns++;
+                        else {                           
+                            if (add_seeds[0] == add_seeds[add_seeds.size() - 1]) {
+                                for (int j = 0; j < add_seeds.size(); j++) {
+                                    if (add_seeds[j] != add_seeds[0]) {
+                                        cout << "Matrix -- " << endl;
+                                        for (int j = 0; j < order; j++) {
+                                            cout << puzzle_factory::gen_row(add_seeds[j]) << endl;
+                                        }
+                                        puzzle_factory::good_patterns++;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                cout << "Matrix -- " << endl;
+                                for (int j = 0; j < order; j++) {
+                                    cout << puzzle_factory::gen_row(add_seeds[j]) << endl;
+                                }
+                                puzzle_factory::good_patterns++;
+                            }
                         }
                     }
                 }
@@ -749,7 +767,7 @@ namespace nurikabe {
         vector<char> bin_vec = puzzle_factory::gen_row(seed, order);
         string ret = "";
 
-        for (int i = 0; i < order; i++) {
+        for (int i = bin_vec.size()-1; i > -1; i--) {
             ret += (to_string(bin_vec[i]) + " ");
         }
 
