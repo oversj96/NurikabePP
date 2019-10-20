@@ -47,16 +47,20 @@ namespace nurikabe {
         if (passed_order > 1) {
             puzzle_factory::order = passed_order;
 
+            // NOT YET FULLY FUNCTIONING
+
             generate_pool_table();
             generate_water_counts();
             generate_contiguous_row_list();
             generate_partially_contiguous_table();
             generate_columnally_contiguous_table();
+            generate_all_columns_contiguous_table();
             generate_recontiguous_table();
-            generate_noncontiguous_table();
+            /*generate_noncontiguous_table();*/
             generate_state_table();
             vector<int> empty_vec;
-            pattern_generator(State::Start, 0, 0, 0, 0, empty_vec);
+            vector<State> start = { Start };
+            pattern_generator(0, 0, 0, 0, empty_vec, false, start);
             /* puzzle_factory::order = passed_order;
              puzzle_factory::good_patterns = 0;
              puzzle_factory::bad_patterns = 0;
@@ -263,6 +267,17 @@ namespace nurikabe {
                             }
                         }
                     }
+
+                   /* for (int k = 0; k < segments_top.size(); k++) {
+                        for (int m = 0; m < col_cont_pos.size(); m++) {
+                            for (int pos = 0; pos < segments_top[k].size(); pos++) {
+                                if (col_cont_pos[m] == segments_top[k][pos]) {
+                                    top_segments--;
+                                    break;
+                                }
+                            }
+                        }
+                    }*/
                     columnally = (bot_segments == 0 && segments_bot.size() != 0);
                 }
                 row.push_back(columnally);
@@ -270,6 +285,65 @@ namespace nurikabe {
             table.push_back(row);
         }
         puzzle_factory::columnally_contiguous_table = table;
+    }
+
+    void puzzle_factory::generate_all_columns_contiguous_table() {
+        vector<vector<bool>> table;
+
+        for (int i = 0; i < pow(2, order); i++) {
+
+            vector<bool> row;
+            vector<char> top = puzzle_factory::gen_row(i, order);
+            vector<vector<int>> segments_top = puzzle_factory::get_contiguous_segments(top);
+            for (int j = 0; j < pow(2, order); j++) {
+                bool columnally = false;
+                if (!puzzle_factory::pool_table[i][j] && !puzzle_factory::partially_contiguous_table[i][j]) {
+                    vector<char> bot = puzzle_factory::gen_row(j, order);
+
+                    vector<vector<char>> matrix = { top, bot };
+                    // At least potentially contiguous, in this case.
+
+                    vector<vector<int>> segments_bot = puzzle_factory::get_contiguous_segments(bot);
+
+
+                    int top_segments = segments_top.size();
+                    int bot_segments = segments_bot.size();
+                    vector<int> col_cont_pos;
+
+                    for (int k = 0; k < top.size(); k++) {
+                        if (top[k] == 0 && bot[k] == 0) {
+                            col_cont_pos.push_back(k);
+                        }
+                    }
+
+                    for (int k = 0; k < segments_bot.size(); k++) {
+                        for (int m = 0; m < col_cont_pos.size(); m++) {
+                            for (int pos = 0; pos < segments_bot[k].size(); pos++) {
+                                if (col_cont_pos[m] == segments_bot[k][pos]) {
+                                    bot_segments--;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                     for (int k = 0; k < segments_top.size(); k++) {
+                         for (int m = 0; m < col_cont_pos.size(); m++) {
+                             for (int pos = 0; pos < segments_top[k].size(); pos++) {
+                                 if (col_cont_pos[m] == segments_top[k][pos]) {
+                                     top_segments--;
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+                    columnally = (bot_segments == 0 && top_segments == 0);
+                }
+                row.push_back(columnally);
+            }
+            table.push_back(row);
+        }
+        puzzle_factory::all_columns_contiguous_table = table;
     }
 
     void puzzle_factory::generate_recontiguous_table() {
@@ -324,91 +398,6 @@ namespace nurikabe {
         puzzle_factory::recontiguous_table = table;
     }
 
-    void puzzle_factory::generate_noncontiguous_table() {
-        vector<vector<bool>> table;
-
-        for (int i = 0; i < pow(2, order); i++) {
-            vector<bool> row;
-            for (int j = 0; j < pow(2, order); j++) {
-                vector<char> top = puzzle_factory::gen_row(i, order);
-                vector<char> bot = puzzle_factory::gen_row(j, order);
-                // At least potentially contiguous, in this case.
-                bool contiguous = false;
-                for (int k = 0; k < order; k++) {
-                    if (bot[k] == 0 && top[k] == 0) {
-                        contiguous = true;
-                        break;
-                    }
-                    if (j == pow(2, order) - 1) {
-                        contiguous = true;
-                        break;
-                    }
-                }
-                row.push_back(contiguous);
-            }
-            table.push_back(row);
-        }
-
-        puzzle_factory::noncontiguous_table = table;
-    }
-
-    void puzzle_factory::generate_noncontiguous_edge_table() {
-        vector<vector<bool>> table;
-
-        for (int i = 0; i < pow(2, order); i++) {
-            vector<bool> row;
-            vector<char> top = puzzle_factory::gen_row(i, order);
-            for (int j = 0; j < pow(2, order); j++) {
-                vector<char> bot = puzzle_factory::gen_row(j, order);
-                vector<vector<char>> matrix = { top, bot };
-                // At least potentially contiguous, in this case.
-                bool contiguous = puzzle_factory::pathable(matrix);
-
-                row.push_back(contiguous);
-            }
-            table.push_back(row);
-        }
-
-        puzzle_factory::noncontiguous_edge_table = table;
-    }
-
-    // Trivially legal edge rows: immediately obvious that they're good rows combinations.
-    void puzzle_factory::generate_legal_edge_table() {
-        vector<vector<bool>> table;
-
-        for (int i = 0; i < pow(2, order); i++) {
-            vector<bool> row;
-            for (int j = 0; j < pow(2, order); j++) {
-                if (!pool_table[i][j] && noncontiguous_edge_table[i][j]) {
-                    row.push_back(true);
-                }
-                else {
-                    row.push_back(false);
-                }
-            }
-            table.push_back(row);
-        }
-        puzzle_factory::legal_edge_table = table;
-    }
-
-    void puzzle_factory::generate_legal_middle_table() {
-        vector<vector<bool>> table;
-
-        for (int i = 0; i < pow(2, order); i++) {
-            vector<bool> row;
-            for (int j = 0; j < pow(2, order); j++) {
-                if (!pool_table[i][j] && noncontiguous_table[i][j]) {
-                    row.push_back(true);
-                }
-                else {
-                    row.push_back(false);
-                }
-            }
-            table.push_back(row);
-        }
-        puzzle_factory::legal_middle_table = table;
-    }
-
     void puzzle_factory::generate_segmented_columns_list() {
         vector<bool> list;
 
@@ -431,13 +420,22 @@ namespace nurikabe {
                     row.push_back(State::Partial);
                 }
                 else if (columnally_contiguous_table[i][j]) {
-                    row.push_back(State::Column);
+                    State state = State::Column;
+
+                    if (all_columns_contiguous_table[i][j]) {
+                        state = State::AllColumn;
+                    }
+
+                    row.push_back(state);
+                }
+                else if (all_columns_contiguous_table[i][j]) {
+                    row.push_back(State::AllColumn);
                 }
                 else if (recontiguous_table[i][j]) {
-                    row.push_back(State::Fully);
+                    row.push_back(State::Recontiguous);
                 }
                 else if (pool_table[i][j]) {
-                    row.push_back(State::Pool);
+                    row.push_back(State::Illegal);
                 }
                 else if (j == pow(2, order) - 1) {
                     row.push_back(State::End);
@@ -452,10 +450,12 @@ namespace nurikabe {
         puzzle_factory::state_table = table;
     }
 
-    void puzzle_factory::pattern_generator(State state, int start_seed, int func_depth,
-        int length, int prev_seed, vector<int> seeds) {
+    void puzzle_factory::pattern_generator(int start_seed, int func_depth, int length,
+        int prev_seed, vector<int> seeds, bool is_partial_warning, vector<State> choices) {
         func_depth++;
         puzzle_factory::call_count++;
+
+        bool start = (length == 0);
 
         if (length < order) {
             length++;
@@ -465,110 +465,65 @@ namespace nurikabe {
                 vector<int> temp = seeds;
                 temp.push_back(i);
 
-                if (partially_contiguous_table[prev_seed][i]) {
-
+                if (start) {
+                    start = false;
+                    choices = { Recontiguous, AllColumn, Column, Partial, End };
+                    pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
                 }
 
-                // If last row...
-                if (length == order && !pool_table[prev_seed][i]) {
-                    if (state == State::Partial) {
-                        if (recontiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                        }
-                    }
-                    else if (state == State::Column) {
-                        if (recontiguous_table[prev_seed][i] || columnally_contiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Column, start_seed, func_depth, length, i, temp);
-                        }
+                if (length == order && is_partial_warning) {
+                    State state = state_table[prev_seed][i];
+                    if (state == State::Recontiguous) {
+                        choices = { Recontiguous, AllColumn, Partial, End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
                     }
                 }
-                else {
-                    // Decision logic.
-                    switch (state) {
+                else if (length == 1) {
+                    State state = state_table[prev_seed][i];
+                    if (state == State::Recontiguous || state == State::AllColumn) {
+                        choices = { Recontiguous, AllColumn, Column, Partial, End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
+                    }
+                }
+                else if (find(choices.begin(), choices.end(), state_table[prev_seed][i]) != choices.end()) {
+                    switch (state_table[prev_seed][i]) {
                     case State::Start: {
-                        seeds.clear();
-                        seeds.push_back(i);
-                        pattern_generator(State::Fully, start_seed, func_depth, length, i, seeds);
+
                         break;
                     }
-                    case State::Fully: {
-                        vector<int> temp = seeds;
-                        temp.push_back(i);
-                        if (puzzle_factory::partially_contiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Partial, start_seed, func_depth, length, i, temp);
-                        }
-                        else if (puzzle_factory::columnally_contiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Column, start_seed, func_depth, length, i, temp);
-                        }
-                        else if (puzzle_factory::recontiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                        }
-                        else {
-                            if (!pool_table[prev_seed][i] && (partially_contiguous_table[prev_seed][i] || columnally_contiguous_table[prev_seed][i])) {
-                                pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                            }
-                        }
+                    case State::Recontiguous: {
+                        choices = { Recontiguous, AllColumn, Column, Partial, End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
                         break;
                     }
-                    case State::Partial: {
-                        if (length == order) {
-
-                            vector<int> temp = seeds;
-                            temp.push_back(i);
-                            if (puzzle_factory::recontiguous_table[prev_seed][i]) {
-                                pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                            }
-
-                        }
-                        if (puzzle_factory::partially_contiguous_table[prev_seed][i]) {
-                            continue;
-                        }
-                        else if (puzzle_factory::columnally_contiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Column, start_seed, func_depth, length, i, temp);
-                        }
-                        else if (puzzle_factory::recontiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                        }
-                        else {
-                            cout << "Something's not quite right in Partial." << endl;
-                            cout << "Matrix -- ";
-                            for (int pos = 0; pos < seeds.size(); pos++) {
-                                cout << to_string(seeds[pos]) << " -- ";
-                            }
-                            cout << endl;
-                        }
-
+                    case State::AllColumn: {
+                        choices = { Recontiguous, AllColumn, Column, Partial, End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
                         break;
                     }
                     case State::Column: {
-
-                        if (puzzle_factory::partially_contiguous_table[prev_seed][i]) {
-                            continue;
-                        }
-                        else if (puzzle_factory::columnally_contiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Column, start_seed, func_depth, length, i, temp);
-                        }
-                        else if (puzzle_factory::recontiguous_table[prev_seed][i]) {
-                            pattern_generator(State::Fully, start_seed, func_depth, length, i, temp);
-                        }
-                        else {
-                            cout << "Something's not quite right in Column." << endl;
-                            cout << "Matrix -- ";
-                            for (int pos = 0; pos < seeds.size(); pos++) {
-                                cout << to_string(seeds[pos]) << " -- ";
-                            }
-                            cout << endl;
-                        }
-
+                        choices = { Recontiguous, AllColumn, Column, Partial, End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, is_partial_warning, choices);
                         break;
                     }
-                    default:
-                        cout << "Invalid State" << endl;
+                    case State::Partial: {
+                        if (length != order) {
+                            choices = { Recontiguous, AllColumn, Column };
+                            pattern_generator(start_seed, func_depth, length, i, temp, true, choices);                           
+                        }
+                        break;
+                    }
+
+                    case State::End: {
+                        choices = { End };
+                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
+                    }
                     }
                 }
-            }          
+            }
         }
         else {
+            // Debug info -- Remove for Release version.
             cout << "Matrix -- ";
             for (int pos = 0; pos < seeds.size(); pos++) {
                 cout << to_string(seeds[pos]) << " -- ";

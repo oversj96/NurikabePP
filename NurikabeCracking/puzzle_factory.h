@@ -14,7 +14,7 @@ namespace nurikabe {
 
         ~puzzle_factory();
       
-        enum State { Start, Partial, Column, Fully, Illegal, Pool, End };
+        enum State { Start, Partial, Column, AllColumn, Recontiguous, Illegal, End };
 
         void generate_pool_table();
 
@@ -23,6 +23,8 @@ namespace nurikabe {
         void generate_partially_contiguous_table();
 
         void generate_columnally_contiguous_table();
+
+        void generate_all_columns_contiguous_table();
 
         void generate_recontiguous_table();
 
@@ -56,7 +58,8 @@ namespace nurikabe {
 
         // Generator
 
-        void pattern_generator(State state, int start_seed, int func_depth, int length, int prev_seed, vector<int> seeds
+        void pattern_generator(int start_seed, int func_depth, 
+            int length, int prev_seed, vector<int> seeds, bool is_partial_warning, vector<State> choices
         );
 
         // Function to check for 2x2 pools of water by generating the rows from the passed seeds.
@@ -134,17 +137,19 @@ namespace nurikabe {
 
         vector<vector<bool>> pool_table;
 
-        vector<vector<bool>> noncontiguous_edge_table;
+        //vector<vector<bool>> noncontiguous_edge_table;
 
-        vector<vector<bool>> noncontiguous_table;
+        //vector<vector<bool>> noncontiguous_table;
 
-        vector<vector<bool>> legal_edge_table;
+        //vector<vector<bool>> legal_edge_table;
 
-        vector<vector<bool>> legal_middle_table;
+        //vector<vector<bool>> legal_middle_table;
 
         vector<vector<bool>> partially_contiguous_table;
 
         vector<vector<bool>> columnally_contiguous_table;
+
+        vector<vector<bool>> all_columns_contiguous_table;
 
         vector<vector<bool>> recontiguous_table;
 
