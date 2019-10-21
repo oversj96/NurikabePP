@@ -13,8 +13,10 @@ namespace nurikabe {
         puzzle_factory(int passed_order);
 
         ~puzzle_factory();
+
+        enum Control { Start, Run, Pause, Stop };
       
-        enum State { Start, Partial, Column, AllColumn, Recontiguous, Illegal, End };
+        enum State { Partial, Column, AllColumn, Recontiguous, Illegal, End };
 
         void generate_pool_table();
 
@@ -58,8 +60,7 @@ namespace nurikabe {
 
         // Generator
 
-        void pattern_generator(int start_seed, int func_depth, 
-            int length, int prev_seed, vector<int> seeds, bool is_partial_warning, vector<State> choices
+        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool is_partial_warning, State choice
         );
 
         // Function to check for 2x2 pools of water by generating the rows from the passed seeds.

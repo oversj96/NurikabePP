@@ -59,8 +59,7 @@ namespace nurikabe {
             /*generate_noncontiguous_table();*/
             generate_state_table();
             vector<int> empty_vec;
-            vector<State> start = { Start };
-            pattern_generator(0, 0, 0, 0, empty_vec, false, start);
+            pattern_generator(Control::Start, 0, empty_vec, false, State::Recontiguous);
             /* puzzle_factory::order = passed_order;
              puzzle_factory::good_patterns = 0;
              puzzle_factory::bad_patterns = 0;
@@ -268,16 +267,16 @@ namespace nurikabe {
                         }
                     }
 
-                   /* for (int k = 0; k < segments_top.size(); k++) {
-                        for (int m = 0; m < col_cont_pos.size(); m++) {
-                            for (int pos = 0; pos < segments_top[k].size(); pos++) {
-                                if (col_cont_pos[m] == segments_top[k][pos]) {
-                                    top_segments--;
-                                    break;
-                                }
-                            }
-                        }
-                    }*/
+                    /* for (int k = 0; k < segments_top.size(); k++) {
+                         for (int m = 0; m < col_cont_pos.size(); m++) {
+                             for (int pos = 0; pos < segments_top[k].size(); pos++) {
+                                 if (col_cont_pos[m] == segments_top[k][pos]) {
+                                     top_segments--;
+                                     break;
+                                 }
+                             }
+                         }
+                     }*/
                     columnally = (bot_segments == 0 && segments_bot.size() != 0);
                 }
                 row.push_back(columnally);
@@ -327,16 +326,16 @@ namespace nurikabe {
                         }
                     }
 
-                     for (int k = 0; k < segments_top.size(); k++) {
-                         for (int m = 0; m < col_cont_pos.size(); m++) {
-                             for (int pos = 0; pos < segments_top[k].size(); pos++) {
-                                 if (col_cont_pos[m] == segments_top[k][pos]) {
-                                     top_segments--;
-                                     break;
-                                 }
-                             }
-                         }
-                     }
+                    for (int k = 0; k < segments_top.size(); k++) {
+                        for (int m = 0; m < col_cont_pos.size(); m++) {
+                            for (int pos = 0; pos < segments_top[k].size(); pos++) {
+                                if (col_cont_pos[m] == segments_top[k][pos]) {
+                                    top_segments--;
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     columnally = (bot_segments == 0 && top_segments == 0);
                 }
                 row.push_back(columnally);
@@ -450,80 +449,106 @@ namespace nurikabe {
         puzzle_factory::state_table = table;
     }
 
-    void puzzle_factory::pattern_generator(int start_seed, int func_depth, int length,
-        int prev_seed, vector<int> seeds, bool is_partial_warning, vector<State> choices) {
+    void puzzle_factory::pattern_generator(Control status, int func_depth,
+        vector<int> seeds, bool is_partial_warning, State choice) {
         func_depth++;
         puzzle_factory::call_count++;
+        vector<State> choices;
 
-        bool start = (length == 0);
-
-        if (length < order) {
-            length++;
-
-            // Main loop.
+        switch (status) {
+        case Control::Start: {
             for (int i = 0; i < pow(2, order); i++) {
-                vector<int> temp = seeds;
-                temp.push_back(i);
+                for (int j = 0; j < pow(2, order); j++) {
+                    vector<int> temp = seeds;
+                    State state = state_table[i][j];
+                    is_partial_warning = (state == State::Partial);
 
-                if (start) {
-                    start = false;
-                    choices = { Recontiguous, AllColumn, Column, Partial, End };
-                    pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                }
-
-                if (length == order && is_partial_warning) {
-                    State state = state_table[prev_seed][i];
-                    if (state == State::Recontiguous) {
-                        choices = { Recontiguous, AllColumn, Partial, End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                    }
-                }
-                else if (length == 1) {
-                    State state = state_table[prev_seed][i];
-                    if (state == State::Recontiguous || state == State::AllColumn) {
-                        choices = { Recontiguous, AllColumn, Column, Partial, End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                    }
-                }
-                else if (find(choices.begin(), choices.end(), state_table[prev_seed][i]) != choices.end()) {
-                    switch (state_table[prev_seed][i]) {
-                    case State::Start: {
-
-                        break;
-                    }
-                    case State::Recontiguous: {
-                        choices = { Recontiguous, AllColumn, Column, Partial, End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                        break;
-                    }
-                    case State::AllColumn: {
-                        choices = { Recontiguous, AllColumn, Column, Partial, End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                        break;
-                    }
-                    case State::Column: {
-                        choices = { Recontiguous, AllColumn, Column, Partial, End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, is_partial_warning, choices);
-                        break;
-                    }
-                    case State::Partial: {
-                        if (length != order) {
-                            choices = { Recontiguous, AllColumn, Column };
-                            pattern_generator(start_seed, func_depth, length, i, temp, true, choices);                           
+                    if (state != State::Illegal) {
+                        temp.push_back(i);
+                        temp.push_back(j);
+                        // Cannot be a noncontiguous row followed by a row of 1's
+                        if ((!contiguous_row_list[i])) {
+                            pattern_generator(Control::Run, 1, temp, true, state);
                         }
-                        break;
-                    }
-
-                    case State::End: {
-                        choices = { End };
-                        pattern_generator(start_seed, func_depth, length, i, temp, false, choices);
-                    }
+                        else {
+                            pattern_generator(Control::Run, 1, temp, is_partial_warning, state);
+                        }
                     }
                 }
             }
+
+            break;
         }
-        else {
-            // Debug info -- Remove for Release version.
+        case Control::Run: {
+            int seed_one = seeds[seeds.size() - 2];
+            int seed_two = seeds[seeds.size() - 1];
+
+            switch (choice) {
+            case State::Recontiguous: {
+                choices = { Recontiguous, AllColumn, Column, Partial, End };
+                is_partial_warning = false;
+                break;
+            }
+            case State::AllColumn: {
+                if (!is_partial_warning) {
+                    choices = { Recontiguous, AllColumn, Column, Partial, End };
+                }
+                else {
+                    choices = { Recontiguous, AllColumn, Column };
+                }
+                break;
+            }
+            case State::Column: {
+                if (!is_partial_warning) {
+                    choices = { Recontiguous, AllColumn, Column, Partial, End };
+                }
+                else {
+                    choices = { Recontiguous, AllColumn, Column};
+                }
+                break;
+            }
+            case State::Partial: {
+                choices = { Recontiguous, AllColumn, Column };
+                is_partial_warning = true;
+                break;
+            }
+            case State::End: {
+                choices = { End };
+                break;
+            }
+            }
+
+            // If vector is full
+            if (seeds.size() == order) {
+                pattern_generator(Control::Stop, func_depth, seeds, false, choice);
+            }
+            else {
+                // If not, choose the next row.
+                for (int i = 0; i < pow(2, order); i++) {
+                    vector<int> temp;
+                    temp.clear();
+                    temp = seeds;
+                    temp.push_back(i);
+                    State new_choice = state_table[seed_two][i];
+
+                    if ((temp.size() == order) && is_partial_warning) {
+                        choices = { State::Recontiguous };
+                    }
+                    else if ((temp.size() == order)) {
+                        choices = { State::Recontiguous, State::AllColumn, State::Column, State::End };
+                    }
+
+                    if (find(choices.begin(), choices.end(), new_choice) != choices.end()) {
+                        pattern_generator(Control::Run, func_depth, temp, is_partial_warning, choice);
+                    }
+                }
+            }           
+            break;
+        }
+        case Control::Pause: {
+            break;
+        }
+        case Control::Stop: {
             cout << "Matrix -- ";
             for (int pos = 0; pos < seeds.size(); pos++) {
                 cout << to_string(seeds[pos]) << " -- ";
@@ -533,6 +558,8 @@ namespace nurikabe {
                 cout << puzzle_factory::gen_row(seeds[j]) << endl;
             }
             puzzle_factory::good_patterns++;
+            break;
+        }
         }
     }
 

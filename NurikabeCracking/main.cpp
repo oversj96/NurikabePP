@@ -27,7 +27,7 @@ int main()
     // a wall of unicode characters. 
     if (seeds.size() > 0) {
 
-        factory.print_all_matrices(5);
+        //factory.print_all_matrices(3);
         /*cout << " --  WARNING: Listing may take awhile! --" << endl;
         cout << " -- Press any button to list the seeds --" << endl;
         string seed_start = to_string(seeds[0]);
