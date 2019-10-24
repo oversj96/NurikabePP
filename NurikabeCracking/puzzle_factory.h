@@ -14,13 +14,17 @@ namespace nurikabe {
 
         ~puzzle_factory();
 
-        enum Control { Start, Run, Pause, Stop };
+        enum class Control { Start, Run, Pause, Stop };
+
+        enum class PuzzleState {Contiguous, Noncontiguous};
       
-        enum State { Partial, Column, AllColumn, Recontiguous, Illegal, End };
+        enum class Choices { Partial, Column, AllColumn, Recontiguous, Illegal, End };
 
         void generate_pool_table();
 
         void generate_water_counts();
+
+        void generate_noncon_column_counts();
 
         void generate_partially_contiguous_table();
 
@@ -30,17 +34,9 @@ namespace nurikabe {
 
         void generate_recontiguous_table();
 
-        void generate_noncontiguous_table();
-
         void generate_contiguous_row_list();
 
-        void generate_noncontiguous_edge_table();
-
-        void generate_legal_edge_table();
-
-        void generate_legal_middle_table();
-
-        void generate_state_table();
+        void generate_decision_table();
 
         //void generate_upwardleading_table();
 
@@ -60,8 +56,8 @@ namespace nurikabe {
 
         // Generator
 
-        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool is_partial_warning, State choice
-        );
+        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool shore, bool is_partial_warning, Choices choice,
+        int noncon_col_count);
 
         // Function to check for 2x2 pools of water by generating the rows from the passed seeds.
         bool has_pool(vector<int> row_seeds, int order);
@@ -111,7 +107,7 @@ namespace nurikabe {
 
 
         //
-        // POTENTIALLY DEPRECATED CODED
+        // POTENTIALLY DEPRECATED CODE
         //
 
         // Getter for retrieving the seed space after generation.
@@ -188,7 +184,7 @@ namespace nurikabe {
         // be in a certain order.
         vector<vector<bool>> seed_table;
 
-        vector<vector<State>> state_table;
+        vector<vector<State>> decision_table;
 
         vector<vector<vector<bool>>> middle_rows_database;
     };

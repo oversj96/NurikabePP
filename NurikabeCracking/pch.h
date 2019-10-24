@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <chrono>
 #include "puzzle_factory.h"
+#include "node.h"
+#include "row.h"
+#include "node_map.h"
 // TODO: add headers that you want to pre-compile here
 
 #endif //PCH_H
