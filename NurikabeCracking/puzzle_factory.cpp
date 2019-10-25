@@ -397,18 +397,6 @@ namespace nurikabe {
         puzzle_factory::recontiguous_table = table;
     }
 
-    void puzzle_factory::generate_segmented_columns_list() {
-        vector<bool> list;
-
-        for (int i = 0; i < pow(2, order); i++) {
-            vector<char> row = puzzle_factory::gen_row(i, order);
-            vector<vector<int>> segments = puzzle_factory::get_contiguous_segments(row);
-            list.push_back(segments.size() > 1);
-        }
-
-        puzzle_factory::segmented_columns_list = list;
-    }
-
     void puzzle_factory::generate_noncon_column_counts() {
         vector<vector<int>> table;
         for (int i = 0; i < pow(2, order); i++) {
@@ -585,32 +573,13 @@ namespace nurikabe {
         }
     }
 
-    vector<vector<int>> puzzle_factory::get_contiguous_segments(vector<char> row) {
-        vector<vector<int>> segments;
-        vector<int> spots;
-        bool segment = false;
+    void node_map::update_map(row candidate) {
+        int noncontiguous_nodes = predecessor_nodes.size();
+        for (int i = 0; i < candidate.nodes.size(); i++) {
+            for (int j = 0; j < candidate.nodes[i].get_columns.size(); j++) {
 
-        for (int i = 0; i < row.size(); i++) {
-            if (row[i] == 0) {
-                if (!segment) {
-                    spots.clear();
-                    segment = true;
-                    spots.push_back(i);
-                }
-                else {
-                    spots.push_back(i);
-                }
-            }
-            else if (row[i] == 1 && segment) {
-                segment = false;
-                segments.push_back(spots);
             }
         }
-        if (segment) {
-            segment = false;
-            segments.push_back(spots);
-        }
-        return segments;
     }
 
 

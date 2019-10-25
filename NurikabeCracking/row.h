@@ -6,11 +6,10 @@ namespace Nurikabe {
     class row
     {
     public:
-        row(int seed_number, int row_length, bool store_row);
+        row(int seed_number, int row_length);
         ~row();
-        vector<char> get_row_bits();
-        int gen_seed();
-        vector<char> generate_row_bits();
+        vector<char> get_bits();
+        vector<node> nodes;
         string gen_row_string();
         int get_seed();
     protected:
@@ -18,7 +17,10 @@ namespace Nurikabe {
         int seed;
         vector<char> bits;
     private:
-        bool store_row;
+        void create_nodes();
+        vector<char> generate_row_bits();
+        int gen_seed();
+        bool store_row;      
     };
 }
 #endif

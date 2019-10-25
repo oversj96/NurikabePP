@@ -42,7 +42,7 @@ namespace nurikabe {
 
         //void generate_downwardleading_table();
 
-        void generate_segmented_columns_list();
+        void generate_connections_data();
 
         //void generate_upwardcorrective_table();
         

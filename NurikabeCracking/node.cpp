@@ -1,13 +1,14 @@
 #include "pch.h"
 
 namespace Nurikabe {
-    node::node(int row_num, int node_num, int length, int leftmost_zero_col)
+    node::node(int row_num, int node_num, int length, vector<int> columns)
     {
-        if (row_num >= 0 && node_num >= 0 && length > 0 && leftmost_zero_col >= 0) {
+        if (row_num >= 0 && node_num >= 0 && length > 0 && columns.size() >= 0) {
             node::row_number = row_num;
             node::node_number = node_num;
             node::length = length;
-            node::leftmost_zero = leftmost_zero_col;
+            node::node_columns = columns;
+            node::leftmost_zero = columns[0];
             node::contiguous = false;
         }
         else {
@@ -15,8 +16,8 @@ namespace Nurikabe {
             std::cout << "Row Number: " << std::to_string(row_num) << std::endl;
             std::cout << "Node Number: " << std::to_string(node_num) << std::endl;
             std::cout << "Zero Count in Node: " << std::to_string(length) << std::endl;
-            std::cout << "Starting zero column position: " 
-                << std::to_string(leftmost_zero_col) << std::endl;
+            std::cout << "Column size: "
+                << std::to_string(columns.size()) << std::endl;
         }
     }
 
@@ -40,6 +41,10 @@ namespace Nurikabe {
 
     int node::get_leftmost_zero() {
         return node::leftmost_zero;
+    }
+
+    vector<int> node::get_columns() {
+        return node::node_columns;
     }
 
 }

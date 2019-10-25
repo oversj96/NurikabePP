@@ -1,16 +1,14 @@
 #include "pch.h"
 
 namespace Nurikabe {
-    row::row(int seed_number, int row_length, bool store_row)
+    row::row(int seed_number, int row_length)
     {
         if (seed_number >= 0 && row_length > 0) {
             row::seed = seed_number;
             row::length = row_length;
             row::store_row = store_row;
-
-            if (row::store_row) {
-                row::bits = row::generate_row_bits();
-            }
+            row::bits = row::generate_row_bits();
+            row::create_nodes();
         }
     }
 
@@ -20,15 +18,45 @@ namespace Nurikabe {
         // Nothing to delete.
     }
 
-    vector<char> row::get_row_bits() {
-        switch (row::store_row) {
-        case true:
-            return row::bits;
-            break;
-        case false:
-            return generate_row_bits();
-            break;
+    void row::create_nodes() {
+        vector<vector<int>> segments;
+        vector<int> spots;
+        bool segment = false;
+
+        for (int i = 0; i < bits.size(); i++) {
+            if (bits[i] == 0) {
+                if (!segment) {
+                    spots.clear();
+                    segment = true;
+                    spots.emplace_back(i);
+                }
+                else {
+                    spots.emplace_back(i);
+                }
+            }
+            else if (bits[i] == 1 && segment) {
+                segment = false;
+                segments.emplace_back(spots);
+            }
         }
+        if (segment) {
+            segment = false;
+            segments.emplace_back(spots);
+        }
+
+        vector<node> nodes;
+
+        for (int i = 0; i < segments.size(); i++) {
+            node n(row::seed, i, row::length, segments[i]);
+            nodes.emplace_back(n);
+        }
+
+        row::nodes = nodes;
+    }
+
+    vector<char> row::get_bits() {
+        return row::bits;
+
     }
 
     int row::gen_seed() {
@@ -37,7 +65,7 @@ namespace Nurikabe {
 
         for (int i = 0; i < row::bits.size(); i++) {
             if (row::bits[i] == 1) {
-                value = std::pow(2, row::bits.size() - i - 1);
+                value = std::pow(2, (row::bits.size() - i - 1));
             }
             else {
                 value = 0;
@@ -46,6 +74,8 @@ namespace Nurikabe {
         }
         return out_seed;
     }
+
+
 
     vector<char> row::generate_row_bits() {
         vector<char> row;
