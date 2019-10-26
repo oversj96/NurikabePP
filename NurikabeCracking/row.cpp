@@ -1,6 +1,6 @@
 #include "pch.h"
 
-namespace Nurikabe {
+namespace nurikabe {
     row::row(int seed_number, int row_length)
     {
         if (seed_number >= 0 && row_length > 0) {
@@ -44,18 +44,24 @@ namespace Nurikabe {
             segments.emplace_back(spots);
         }
 
-        vector<node> nodes;
+        vector<std::unique_ptr<node>> nodes;
 
         for (int i = 0; i < segments.size(); i++) {
             node n(row::seed, i, row::length, segments[i]);
-            nodes.emplace_back(n);
+            auto node(std::make_unique<node>(n));
+            nodes.emplace_back(node);
         }
 
-        row::nodes = nodes;
+        row::p_nodes = nodes;
     }
 
     vector<char> row::get_bits() {
         return row::bits;
+
+    }
+
+    node_map row::map_out(row other) {
+        node_map map(length, this);
 
     }
 

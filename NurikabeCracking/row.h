@@ -2,16 +2,17 @@
 #define ROW_H
 #include "pch.h"
 
-namespace Nurikabe {
+namespace nurikabe {
     class row
     {
     public:
         row(int seed_number, int row_length);
         ~row();
         vector<char> get_bits();
-        vector<node> nodes;
+        vector<std::unique_ptr<node>> p_nodes;
         string gen_row_string();
         int get_seed();
+        node_map map_out(row other);
     protected:
         int length;
         int seed;

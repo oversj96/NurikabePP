@@ -24,8 +24,6 @@ namespace nurikabe {
 
         void generate_water_counts();
 
-        void generate_noncon_column_counts();
-
         void generate_partially_contiguous_table();
 
         void generate_columnally_contiguous_table();
@@ -56,8 +54,7 @@ namespace nurikabe {
 
         // Generator
 
-        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool shore, bool is_partial_warning, Choices choice,
-        int noncon_col_count);
+        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool shore, bool is_partial_warning, Choices choice, node_map map);
 
         // Function to check for 2x2 pools of water by generating the rows from the passed seeds.
         bool has_pool(vector<int> row_seeds, int order);
@@ -66,12 +63,6 @@ namespace nurikabe {
         // Determine if there are isolated water tiles. If a tile is
         
         // Given an int for a seed and the length of the string, generate the sequence of bits.
-        vector<char> gen_row(int seed, int order);
-
-        string gen_row(int seed);
-
-        // Given a char vector of bits, convert it into the int it represents.
-        int gen_seed(vector<char> bits);
 
         int count_water(vector<vector<char>> matrix);
 
@@ -82,8 +73,6 @@ namespace nurikabe {
         void set_builder(string flag, vector<int> seeds, int depth, int top_seed, int bottom_seed);
 
         bool pathable(vector<vector<char>> matrix);
-
-        vector<vector<int>> get_contiguous_segments(vector<char> row);
        
         // Sets the good pattern count.
         void set_good_patterns(int patterns);
@@ -184,7 +173,7 @@ namespace nurikabe {
         // be in a certain order.
         vector<vector<bool>> seed_table;
 
-        vector<vector<State>> decision_table;
+        vector<vector<Choices>> decision_table;
 
         vector<vector<vector<bool>>> middle_rows_database;
     };
