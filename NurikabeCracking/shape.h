@@ -12,9 +12,9 @@ public:
     int tiles() const;
     auto get_shape_vec() const;
     int shape_id;
-private:
-    int tile_count = 0;
     std::vector<std::vector<bool>> shape_map;
+private:
+    int tile_count = 0;  
     int x_dimension = 0;
     int y_dimension = 0;
 

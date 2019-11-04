@@ -31,25 +31,41 @@ shape_generator::~shape_generator()
 
 void shape_generator::run(std::vector<std::vector<int>> candidates, std::vector<std::vector<bool>> map,
     int tiles, int x_dim, int y_dim, int id) {
+    // Increment the tile count.
     tiles++;
+    // Loop through the list of candidates available to this specific shape.
     for (int i = 0; i < candidates.size(); i++) {
+        // For readability, assign the x and y value of the candidate to a point vector.
         std::vector<int> point{ candidates[i][0], candidates[i][1] };
-        int new_id = id + point[0] + point[1];
-        map[point[0]][point[1]] = true;
-        if (point[0] > x_dim) {
-            x_dim = point[0];
-        }
-        if (point[1] > y_dim) {
-            y_dim = point[1];
-        }
-        shape s(tiles, map, x_dim, y_dim, new_id);
+        // Erase the chosen point from the list of candidates.
+        candidates.erase(candidates.begin() + i);
+        // Generate the new shape ID based on the previous ID and the new point.
+        int new_id = id + point[0] + point[1];                   
+        // Determine if the id has been used before.
         if (umap.find(new_id) == umap.end()) {
+            // Set the point on the map to true to indicate water.
+            map[point[0]][point[1]] = true;
+            // Measure the shapes dimensions.
+            /*if (point[0] > x_dim) {
+                x_dim = point[0];
+            }
+            if (point[1] > y_dim) {
+                y_dim = point[1];
+            }*/
+            // Construct a new shape 's' with these parameters.
+            shape s(tiles, map, x_dim, y_dim, new_id);
+            // Place the shape onto the end of the shapes list.
             shapes.push_back(s);
+            // Superfluous variable to keep track of the count of shapes.
             shape_generator::shape_count++;
+            // Hash the new id and add it to the unordered_set object.
+            // This prevents multiple inclusion and searching a hash table is amortized O(1).
             shape_generator::umap.insert(new_id);
+            // Copy the candidates that remain and update the list, removing any potentially
+            // invalid points and adding new ones.
             std::vector<std::vector<int>> cand_copy = candidates;
-            cand_copy.erase(cand_copy.begin() + i);
             auto n_candidates = shape_generator::determine_candidates(map, point, cand_copy);
+            // recurse!
             shape_generator::run(n_candidates, map, tiles, x_dim, y_dim, new_id);
         }
     }
@@ -66,9 +82,17 @@ std::vector<std::vector<int>> shape_generator::determine_candidates(const std::v
     directions.push_back(bot);
     directions.push_back(lft);
     directions.push_back(rht);
-    for (auto &direction : directions) {
-        if (in_bounds(map, direction) && !forms_pool(map, direction)) {
-            candidates.push_back(direction);
+    for (int i = 0; i < directions.size(); i++){
+
+        if (in_bounds(map, directions[i]) && !forms_pool(map, directions[i])) {
+            candidates.push_back(directions[i]);
+        }
+        else {
+            for (int j = 0; j < candidates.size(); j++) {
+                if (candidates[j] == directions[i]) {
+                    candidates.erase(candidates.begin() + j);
+                }
+            }
         }
     }
     return candidates;
