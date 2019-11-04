@@ -1,25 +1,29 @@
 #ifndef ROW_H
 #define ROW_H
-#include "pch.h"
-
+#include "node.h"
 namespace nurikabe {
     class row
     {
     public:
         row(int seed_number, int row_length);
         ~row();
-        vector<char> get_bits();
-        vector<std::unique_ptr<node>> p_nodes;
-        string gen_row_string();
+        std::vector<char> get_bits();
+        std::vector<node> p_nodes;
+        std::string gen_row_string();
         int get_seed();
-        node_map map_out(row other);
+        int get_contiguous_node_count();
     protected:
+        /*std::unique_ptr<row> above_row;
+        std::unique_ptr<row> below_row;
+        bool is_top;
+        bool is_bottom;*/
         int length;
         int seed;
-        vector<char> bits;
+        std::vector<char> bits;
     private:
+        int contiguous_node_count;
         void create_nodes();
-        vector<char> generate_row_bits();
+        std::vector<char> generate_row_bits();
         int gen_seed();
         bool store_row;      
     };

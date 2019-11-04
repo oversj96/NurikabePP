@@ -1,5 +1,5 @@
 #include "pch.h"
-
+#include "row.h"
 namespace nurikabe {
     row::row(int seed_number, int row_length)
     {
@@ -19,8 +19,8 @@ namespace nurikabe {
     }
 
     void row::create_nodes() {
-        vector<vector<int>> segments;
-        vector<int> spots;
+        std::vector<std::vector<int>> segments;
+        std::vector<int> spots;
         bool segment = false;
 
         for (int i = 0; i < bits.size(); i++) {
@@ -28,41 +28,33 @@ namespace nurikabe {
                 if (!segment) {
                     spots.clear();
                     segment = true;
-                    spots.emplace_back(i);
+                    spots.push_back(i);
                 }
                 else {
-                    spots.emplace_back(i);
+                    spots.push_back(i);
                 }
             }
             else if (bits[i] == 1 && segment) {
                 segment = false;
-                segments.emplace_back(spots);
+                segments.push_back(spots);
             }
         }
         if (segment) {
             segment = false;
-            segments.emplace_back(spots);
+            segments.push_back(spots);
         }
 
-        vector<std::unique_ptr<node>> nodes;
+        std::vector<node> nodes;
 
         for (int i = 0; i < segments.size(); i++) {
-            node n(row::seed, i, row::length, segments[i]);
-            auto node(std::make_unique<node>(n));
-            nodes.emplace_back(node);
+            nodes.push_back(node(row::seed, i, row::length, segments[i]));
         }
 
         row::p_nodes = nodes;
     }
 
-    vector<char> row::get_bits() {
+    std::vector<char> row::get_bits() {
         return row::bits;
-
-    }
-
-    node_map row::map_out(row other) {
-        node_map map(length, this);
-
     }
 
     int row::gen_seed() {
@@ -81,26 +73,28 @@ namespace nurikabe {
         return out_seed;
     }
 
+    int row::get_contiguous_node_count() {
+        return row::contiguous_node_count;
+    }
 
+    std::vector<char> row::generate_row_bits() {
+        std::vector<char> row;
+        // We know the length of the std::vector ahead of time, so if we reserve it 
+        // we can make row generation extremely fast by eliminating the need for reallocation. 
 
-    vector<char> row::generate_row_bits() {
-        vector<char> row;
-        // We know the length of the vector ahead of time, so if we reserve it and use
-        // the [] subscript operator, we can make row generation extremely fast. On order of
-        // 1000x faster than using push_back for large rows.
         row.reserve(row::length);
-        // If the seed is -1, this represents a vector beyond the scope of the matrix order, 
-        // and will generate x's of the specified vector length. This is for bounds checking
+        // If the seed is -1, this represents a std::vector beyond the scope of the matrix order, 
+        // and will generate x's of the specified std::vector length. This is for bounds checking
         // during the seed space creation.
         for (int i = 0; i < row::length; i++) {
-            row[(row::seed >> i) & 1];
+            row.push_back((row::seed >> i) & 1);
         }
         return row;
     }
 
-    string row::gen_row_string() {
-        vector<char> bin_vec = row::generate_row_bits();
-        string row = "";
+    std::string row::gen_row_string() {
+        std::vector<char> bin_vec = row::generate_row_bits();
+        std::string row = "";
 
         for (int i = bin_vec.size() - 1; i > -1; i--) {
             row += (std::to_string(bin_vec[i]) + " ");

@@ -1,30 +1,27 @@
 #ifndef NODE_MAP_H
 #define NODE_MAP_H
-#include "pch.h"
-
+#include "row.h"
 namespace nurikabe {
     class node_map
     {
     public:
-        node_map(row top_row);
-        node_map(row top_row, row bot_row);
-        node_map();
+        node_map(row top_row, row sec_row);
+        node_map(std::vector<node> predecessors, int row_count, int order);
         ~node_map();
         bool is_contiguous();
-        void update_current_nodes(vector<std::unique_ptr<node>> candidates);
-        int get_node_count();
-        int get_connection_count();
-        vector<int> get_row_seeds();
+        bool is_fully_contiguous();
+        int get_last_row_seed();
+        int get_row_count();
+        std::vector<node> get_successor_nodes();
+        void update_current_nodes(std::vector<node> candidates);
     private:
         int order;
-        vector<vector<vector<int>>> node_connections;
+        int pred_count;
+        int cand_count;
         int row_count;
-        int node_count;
-        int contiguous_node_count;
-        int connections;
         bool contiguous;
-        vector<int> associated_rows;
-        vector<std::unique_ptr<node>> predecessor_nodes;
+        std::vector<node> predecessor_nodes;
+        std::vector<node> successor_nodes;
     };
 }
 #endif

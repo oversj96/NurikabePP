@@ -1,5 +1,5 @@
 #include "pch.h"
-
+#include "puzzle_factory.h"
 using namespace std;
 
 namespace nurikabe {
@@ -59,8 +59,11 @@ namespace nurikabe {
             /*generate_noncontiguous_table();*/
             generate_decision_table();
             vector<int> empty_vec;
-            node_map map;
-            pattern_generator(Control::Start, 0, empty_vec, false, false, Choices::Recontiguous, map);
+            row empty_row(0, puzzle_factory::order);
+            row empty_row_2(0, puzzle_factory::order);
+            node_map empty(empty_row, empty_row_2);
+            //pattern_generator(Control::Start, 0, empty_vec, false, false, Choices::Recontiguous, empty);
+            pattern_gen_with_mapping(Control::Start, 0, empty);
             /* puzzle_factory::order = passed_order;
              puzzle_factory::good_patterns = 0;
              puzzle_factory::bad_patterns = 0;
@@ -97,7 +100,7 @@ namespace nurikabe {
                     water++;
                 }
             }
-            puzzle_factory::water_count.emplace_back(water);
+            puzzle_factory::water_count.push_back(water);
         }
     }
 
@@ -109,13 +112,13 @@ namespace nurikabe {
             for (int j = 0; j < pow(2, order); j++) {
                 vector<int> seeds = { i, j };
                 if (puzzle_factory::has_pool(seeds, order)) {
-                    row.emplace_back(true);
+                    row.push_back(true);
                 }
                 else {
-                    row.emplace_back(false);
+                    row.push_back(false);
                 }
             }
-            table.emplace_back(row);
+            table.push_back(row);
         }
 
         puzzle_factory::pool_table = table;
@@ -128,17 +131,17 @@ namespace nurikabe {
             row r(i, order);
 
             if (r.p_nodes.size() < 2) {
-                list.emplace_back(true);
+                list.push_back(true);
             }
             else {
-                list.emplace_back(false);
+                list.push_back(false);
             }
         }
         puzzle_factory::contiguous_row_list = list;
     }
 
     void puzzle_factory::generate_partially_contiguous_table() {
-        
+
         vector<vector<bool>> table;
 
         for (int i = 0; i < pow(2, order); i++) {
@@ -152,35 +155,36 @@ namespace nurikabe {
                     row bot(j, order);
 
                     // Check if the row combo is actually legal. I.E. no water left behind!
-                    for (int i = 0; i < top.p_nodes.size(); i++) {
-                        for (int j = 0; j < bot.p_nodes.size(); j++) {
-                            top.p_nodes[i]->connects_to(bot.p_nodes[j]);
+                    for (int k = 0; k < top.p_nodes.size(); k++) {
+                        for (int m = 0; m < bot.p_nodes.size(); m++) {
+                            top.p_nodes[k].connects_to(&bot.p_nodes[m]);
                         }
-                        if (top.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (top.p_nodes[k].connected_nodes.size() == 0) {
                             bad_rows = true;
                         }
                     }
-                        
+
                     if (bad_rows) {
-                        b_row.emplace_back(partially);
+                        b_row.push_back(partially);
                         continue;
                     }
 
                     // Check for nodes isolated in the lower row.
-                    for (int i = 0; i < bot.p_nodes.size(); i++) {
-                        for (int j = 0; j < top.p_nodes.size(); j++) {
-                            bot.p_nodes[i]->connects_to(top.p_nodes[j]);
+                    for (int k = 0; k < bot.p_nodes.size(); k++) {
+                        for (int m = 0; m < top.p_nodes.size(); m++) {
+                            bot.p_nodes[k].connects_to(&top.p_nodes[m]);
                         }
-                        if (bot.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (bot.p_nodes[k].connected_nodes.size() == 0) {
                             partially = true;
                             break;
                         }
-                    }                  
+                    }
                 }
-                b_row.emplace_back(partially);
+                b_row.push_back(partially);
             }
-            table.emplace_back(b_row);
+            table.push_back(b_row);
         }
+
         puzzle_factory::partially_contiguous_table = table;
     }
 
@@ -190,40 +194,41 @@ namespace nurikabe {
         for (int i = 0; i < pow(2, order); i++) {
 
             vector<bool> b_row;
-            row top(i, order);
+
             for (int j = 0; j < pow(2, order); j++) {
-                bool columnally = true;
+                bool columnally = false;
                 bool bad_rows = false;
                 if (!puzzle_factory::pool_table[i][j] && !puzzle_factory::partially_contiguous_table[i][j]) {
+                    row top(i, order);
                     row bot(j, order);
 
-                    for (int i = 0; i < top.p_nodes.size(); i++) {
+                    /*for (int i = 0; i < top.p_nodes.size(); i++) {
                         for (int j = 0; j < bot.p_nodes.size(); j++) {
-                            top.p_nodes[i]->connects_to(bot.p_nodes[j]);
+                            top.p_nodes[i].connects_to(&bot.p_nodes[j]);
                         }
-                        if (top.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (top.p_nodes[i].connected_nodes.size() == 0) {
                             bad_rows = true;
                         }
                     }
 
                     if (bad_rows) {
-                        b_row.emplace_back(false);
+                        b_row.push_back(false);
                         continue;
-                    }
+                    }*/
 
                     for (int i = 0; i < bot.p_nodes.size(); i++) {
                         for (int j = 0; j < top.p_nodes.size(); j++) {
-                            bot.p_nodes[i]->connects_to(top.p_nodes[j]);
+                            bot.p_nodes[i].connects_to(&top.p_nodes[j]);
                         }
-                        if (bot.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (bot.p_nodes[i].connected_nodes.size() == 0) {
                             columnally = false;
                             break;
                         }
                     }
                 }
-                b_row.emplace_back(columnally);
+                b_row.push_back(columnally);
             }
-            table.emplace_back(b_row);
+            table.push_back(b_row);
         }
         puzzle_factory::columnally_contiguous_table = table;
     }
@@ -241,9 +246,9 @@ namespace nurikabe {
 
                     for (int i = 0; i < top.p_nodes.size(); i++) {
                         for (int j = 0; j < bot.p_nodes.size(); j++) {
-                            top.p_nodes[i]->connects_to(bot.p_nodes[j]);
+                            top.p_nodes[i].connects_to(&bot.p_nodes[j]);
                         }
-                        if (top.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (top.p_nodes[i].connected_nodes.size() == 0) {
                             columnally = false;
                             break;
                         }
@@ -251,18 +256,18 @@ namespace nurikabe {
 
                     for (int i = 0; i < bot.p_nodes.size(); i++) {
                         for (int j = 0; j < top.p_nodes.size(); j++) {
-                            bot.p_nodes[i]->connects_to(top.p_nodes[j]);
+                            bot.p_nodes[i].connects_to(&top.p_nodes[j]);
                         }
-                        if (bot.p_nodes[i]->connected_nodes.size() == 0) {
+                        if (bot.p_nodes[i].connected_nodes.size() == 0) {
                             columnally = false;
                             break;
                         }
                     }
-                   
+
                 }
-                b_row.emplace_back(columnally);
+                b_row.push_back(columnally);
             }
-            table.emplace_back(b_row);
+            table.push_back(b_row);
         }
         puzzle_factory::all_columns_contiguous_table = table;
     }
@@ -271,20 +276,39 @@ namespace nurikabe {
         vector<vector<bool>> table;
 
         for (int i = 0; i < pow(2, order); i++) {
-
             vector<bool> b_row;
-            row top(i, order);
             for (int j = 0; j < pow(2, order); j++) {
-                bool recontiguous = false;
+                bool recontiguous = true;
                 if (!puzzle_factory::pool_table[i][j]) {
+                    row top(i, order);
                     row bot(j, order);
 
-                    if ()
-
+                    if (top.p_nodes.size() > 0) {
+                        top.p_nodes[0].set_contiguous();
+                    }
+                    else {
+                        b_row.push_back(false);
+                        break;
+                    }
+                    for (int k = 0; k < top.p_nodes.size(); k++) {
+                        for (int m = 0; m < bot.p_nodes.size(); m++) {
+                            bot.p_nodes[m].connects_to(&top.p_nodes[k]);
+                        }
+                    }
+                    for (int k = 0; k < top.p_nodes.size(); k++) {
+                        if (!top.p_nodes[k].is_contiguous()) {
+                            recontiguous = false;
+                        }
+                    }
+                    for (int k = 0; k < bot.p_nodes.size(); k++) {
+                        if (!bot.p_nodes[k].is_contiguous()) {
+                            recontiguous = false;
+                        }
+                    }
                 }
-                b_row.emplace_back(recontiguous);
+                b_row.push_back(recontiguous);
             }
-            table.emplace_back(b_row);
+            table.push_back(b_row);
         }
         puzzle_factory::recontiguous_table = table;
     }
@@ -296,7 +320,10 @@ namespace nurikabe {
             vector<Choices> row;
             for (int j = 0; j < pow(2, order); j++) {
                 if (partially_contiguous_table[i][j]) {
-                    row.emplace_back(Choices::Partial);
+                    row.push_back(Choices::Partial);
+                }
+                else if (pool_table[i][j]) {
+                    row.push_back(Choices::Illegal);
                 }
                 else if (columnally_contiguous_table[i][j]) {
                     Choices state = Choices::Column;
@@ -305,26 +332,23 @@ namespace nurikabe {
                         state = Choices::AllColumn;
                     }
 
-                    row.emplace_back(state);
+                    row.push_back(state);
                 }
                 else if (all_columns_contiguous_table[i][j]) {
-                    row.emplace_back(Choices::AllColumn);
+                    row.push_back(Choices::AllColumn);
                 }
                 else if (recontiguous_table[i][j]) {
-                    row.emplace_back(Choices::Recontiguous);
-                }
-                else if (pool_table[i][j]) {
-                    row.emplace_back(Choices::Illegal);
+                    row.push_back(Choices::Recontiguous);
                 }
                 else if (j == pow(2, order) - 1) {
-                    row.emplace_back(Choices::End);
+                    row.push_back(Choices::End);
                 }
                 else {
                     // Biggest potential for error here
-                    row.emplace_back(Choices::Illegal);
+                    row.push_back(Choices::Illegal);
                 }
             }
-            table.emplace_back(row);
+            table.push_back(row);
         }
         puzzle_factory::decision_table = table;
     }
@@ -338,7 +362,9 @@ namespace nurikabe {
         switch (status) {
         case Control::Start: {
             for (int i = 0; i < pow(2, order); i++) {
+                row first_row(i, puzzle_factory::order);
                 for (int j = 0; j < pow(2, order); j++) {
+                    row second_row(i, puzzle_factory::order);
                     vector<int> temp = seeds;
                     Choices state = decision_table[i][j];
                     shore = false;
@@ -349,16 +375,16 @@ namespace nurikabe {
                     }
 
                     is_partial_warning = (state == Choices::Partial);
-                    
+
                     if (state != Choices::Illegal) {
-                        temp.emplace_back(i);
-                        temp.emplace_back(j);
+                        temp.push_back(i);
+                        temp.push_back(j);
                         // Cannot be a noncontiguous row followed by a row of 1's
                         if ((!contiguous_row_list[i])) {
-                            pattern_generator(Control::Run, 1, temp, shore, true, state);
+                            pattern_generator(Control::Run, 1, temp, shore, true, state, map);
                         }
                         else {
-                            pattern_generator(Control::Run, 1, temp, shore, is_partial_warning, state);
+                            pattern_generator(Control::Run, 1, temp, shore, is_partial_warning, state, map);
                         }
                     }
                 }
@@ -390,7 +416,7 @@ namespace nurikabe {
                     choices = { Choices::Recontiguous, Choices::AllColumn, Choices::Column, Choices::Partial, Choices::End };
                 }
                 else {
-                    choices = { Choices::Recontiguous, Choices::AllColumn, Choices::Column};
+                    choices = { Choices::Recontiguous, Choices::AllColumn, Choices::Column };
                 }
                 break;
             }
@@ -407,7 +433,7 @@ namespace nurikabe {
 
             // If vector is full
             if (seeds.size() == order) {
-                pattern_generator(Control::Stop, func_depth, seeds, shore, false, choice);
+                pattern_generator(Control::Stop, func_depth, seeds, shore, false, choice, map);
             }
             else {
                 // If not, choose the next row.
@@ -416,7 +442,7 @@ namespace nurikabe {
                     bool shore_temp = shore;
                     temp.clear();
                     temp = seeds;
-                    temp.emplace_back(i);
+                    temp.push_back(i);
                     Choices new_choice = decision_table[seed_two][i];
 
                     if ((seed_two == (pow(2, order) - 1)) && shore) {
@@ -431,10 +457,10 @@ namespace nurikabe {
                     }
 
                     if (find(choices.begin(), choices.end(), new_choice) != choices.end()) {
-                        pattern_generator(Control::Run, func_depth, temp, shore, is_partial_warning, choice);
+                        pattern_generator(Control::Run, func_depth, temp, shore, is_partial_warning, choice, map);
                     }
                 }
-            }           
+            }
             break;
         }
         case Control::Pause: {
@@ -449,6 +475,44 @@ namespace nurikabe {
             for (int j = 0; j < order; j++) {
                 cout << row(seeds[j], order).gen_row_string() << endl;
             }
+            puzzle_factory::good_patterns++;
+            break;
+        }
+        }
+    }
+
+    void puzzle_factory::pattern_gen_with_mapping(Control status, int func_depth, node_map map) {
+        func_depth++;
+        switch (status) {
+        case Control::Start: {
+            row filler_row(0, puzzle_factory::order);
+            for (int i = 0; i < std::pow(2, order); i++) {
+                row top_row(i, puzzle_factory::order);              
+                node_map fresh_map(top_row, filler_row);
+                pattern_gen_with_mapping(Control::Run, func_depth, fresh_map);
+            }
+            break;
+        }
+        case Control::Run: { 
+            if (map.get_row_count() == order) {
+                pattern_gen_with_mapping(Control::Stop, func_depth, map);
+                break;
+            }
+            for (int i = 0; i < std::pow(2, order); i++) {
+                if (puzzle_factory::decision_table[map.get_last_row_seed()][i] != Choices::Illegal) {
+                    node_map next_map(map.get_successor_nodes(), map.get_row_count(), order);
+                    next_map.update_current_nodes(row(i, order).p_nodes);
+                    if (next_map.is_contiguous()) {
+                        pattern_gen_with_mapping(Control::Run, func_depth, next_map);
+                    }
+                }              
+            }
+            break;
+        }
+        case Control::Pause: {
+            break;
+        }
+        case Control::Stop: {
             puzzle_factory::good_patterns++;
             break;
         }
@@ -492,7 +556,7 @@ namespace nurikabe {
                     prev_res = res;
                 }
             }
-            prev_row = std::move(r);
+            prev_row = r;
         }
         return false;
     }
@@ -615,9 +679,9 @@ namespace nurikabe {
         }
     }
 
-    
 
-   
+
+
 
     //
     // POTENTIALLY DEPRECATED CODE
@@ -729,12 +793,12 @@ namespace nurikabe {
     //    // Calculate the bit value at every position in the vector now so we only have to
     //    // do this once. Reduces wasted cycles.
     //    /*for (int vec_pos = 1; vec_pos < vec_length; vec_pos++) {
-    //        vec_pos_values.emplace_back(pow(2, vec_pos));
+    //        vec_pos_values.push_back(pow(2, vec_pos));
     //    }*/
 
     //    // Initialize row seeds to all 0's of the correct length.
     //    for (int i = 0; i < vec_length; i++) {
-    //        row_seeds.emplace_back(0);
+    //        row_seeds.push_back(0);
     //    }
 
     //    int row_range = row_seeds.size() - 1;
@@ -746,7 +810,7 @@ namespace nurikabe {
 
     //        if (puzzle_factory::check_matrix(row_seeds)
     //            && puzzle_factory::check_matrix(puzzle_factory::get_column_seeds(row_seeds))) {
-    //            good_seeds.emplace_back(i);
+    //            good_seeds.push_back(i);
     //        }
 
     //        row_seeds[row_range]++;
@@ -781,15 +845,15 @@ namespace nurikabe {
 
     //    // Initialize a boolean database with all values set to false
     //    for (int i = 0; i < high_num; i++) {
-    //        row.emplace_back(false);
+    //        row.push_back(false);
     //    }
 
     //    for (int j = 0; j < high_num; j++) {
-    //        table.emplace_back(row);
+    //        table.push_back(row);
     //    }
 
     //    for (int k = 0; k < high_num; k++) {
-    //        database.emplace_back(table);
+    //        database.push_back(table);
     //    }
 
     //    // We want to test against all possible combinations of three rows that generate
@@ -923,9 +987,9 @@ namespace nurikabe {
     //    for (int i = 0; i < bit_length; i++) {
     //        vector<bool> row;
     //        for (int j = 0; j < bit_length; j++) {
-    //            row.emplace_back(false);
+    //            row.push_back(false);
     //        }
-    //        table.emplace_back(row);
+    //        table.push_back(row);
     //    }
 
     //    // Initialize a two row matrix.

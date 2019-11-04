@@ -1,9 +1,7 @@
 #ifndef PUZZLE_FACTORY_H
 #define PUZZLE_FACTORY_H
-#include "pch.h"
-
-using std::vector;
-using std::string;
+#include "row.h"
+#include "node_map.h"
 
 namespace nurikabe {
 
@@ -40,7 +38,7 @@ namespace nurikabe {
 
         //void generate_downwardleading_table();
 
-        void generate_connections_data();
+        //void generate_connections_data();
 
         //void generate_upwardcorrective_table();
         
@@ -50,29 +48,26 @@ namespace nurikabe {
 
         // A general table that keeps track of all possible combinations, good or bad,
         // and defines them by their enumerations for fast table lookup if needed.
-        //vector<vector<Result>> general_table();
+        //std::vector<std::vector<Result>> general_table();
 
         // Generator
 
-        void pattern_generator(Control status, int func_depth, vector<int> seeds, bool shore, bool is_partial_warning, Choices choice, node_map map);
+        void pattern_generator(Control status, int func_depth, std::vector<int> seeds, bool shore, bool is_partial_warning, Choices choice, node_map map);
 
+        void pattern_gen_with_mapping(Control status, int func_depth, node_map map);
         // Function to check for 2x2 pools of water by generating the rows from the passed seeds.
-        bool has_pool(vector<int> row_seeds, int order);
+        bool has_pool(std::vector<int> row_seeds, int order);
 
-        bool has_pool(vector<vector<char>> matrix, int order);
+        bool has_pool(std::vector<std::vector<char>> matrix, int order);
         // Determine if there are isolated water tiles. If a tile is
         
         // Given an int for a seed and the length of the string, generate the sequence of bits.
 
-        int count_water(vector<vector<char>> matrix);
+        int count_water(std::vector<std::vector<char>> matrix);
 
-        int traverse(vector<vector<char>> &matrix, int point[], int water, char path_char);
+        int traverse(std::vector<std::vector<char>> &matrix, int point[], int water, char path_char);
         // Retrives the game order, or in otherwords, the dimensions of the square matrix.
         int get_order();
-
-        void set_builder(string flag, vector<int> seeds, int depth, int top_seed, int bottom_seed);
-
-        bool pathable(vector<vector<char>> matrix);
        
         // Sets the good pattern count.
         void set_good_patterns(int patterns);
@@ -86,13 +81,11 @@ namespace nurikabe {
         
         void print_all_matrices(int columns);
 
-        void set_good_seeds(vector<int> seeds);
+        void set_good_seeds(std::vector<int> seeds);
        
-        string to_string_matrix(int seed);
+        std::string to_string_matrix(int seed);
 
-        vector<int> get_column_seeds(vector<int> seeds);
-
-        vector<int> get_good_seeds();
+        std::vector<int> get_good_seeds();
 
 
         //
@@ -100,59 +93,46 @@ namespace nurikabe {
         //
 
         // Getter for retrieving the seed space after generation.
-        vector<vector<vector<bool>>> get_middle_rows_database();
-
-        vector<vector<bool>> get_table();
-
-        void generate_seed_table(int order);
-
-        void generate_database(int order);
-
-        bool check_matrix(vector<int> seeds);
-
-        void test_all_patterns();
-
         void test_small_patterns();
 
         // Getter function to retrieve game's total possible pattern size.
         int get_total_pattern_count();
 
-        bool is_contiguous(vector<vector<char>> matrix);
 
     private:
 
-        vector<vector<bool>> pool_table;
+        std::vector<std::vector<bool>> pool_table;
 
-        //vector<vector<bool>> noncontiguous_edge_table;
+        //std::vector<std::vector<bool>> noncontiguous_edge_table;
 
-        //vector<vector<bool>> noncontiguous_table;
+        //std::vector<std::vector<bool>> noncontiguous_table;
 
-        //vector<vector<bool>> legal_edge_table;
+        //std::vector<std::vector<bool>> legal_edge_table;
 
-        //vector<vector<bool>> legal_middle_table;
+        //std::vector<std::vector<bool>> legal_middle_table;
 
-        vector<vector<bool>> partially_contiguous_table;
+        std::vector<std::vector<bool>> partially_contiguous_table;
 
-        vector<vector<bool>> columnally_contiguous_table;
+        std::vector<std::vector<bool>> columnally_contiguous_table;
 
-        vector<vector<bool>> all_columns_contiguous_table;
+        std::vector<std::vector<bool>> all_columns_contiguous_table;
 
-        vector<vector<bool>> recontiguous_table;
+        std::vector<std::vector<bool>> recontiguous_table;
 
         // Serves as both contiguous and noncontiguous row lists.
-        vector<bool> contiguous_row_list;
+        std::vector<bool> contiguous_row_list;
 
-        //vector<vector<bool>> upward_leading_table;
+        //std::vector<std::vector<bool>> upward_leading_table;
 
-        //vector<vector<bool>> downward_leading_table;
+        //std::vector<std::vector<bool>> downward_leading_table;
 
-        //vector<vector<bool>> upward_corrective_table;
+        //std::vector<std::vector<bool>> upward_corrective_table;
 
-        //vector<vector<bool>> downward_corrective_table;
+        //std::vector<std::vector<bool>> downward_corrective_table;
 
-        //vector<vector<bool>> column_corrective_table;
+        //std::vector<std::vector<bool>> column_corrective_table;
 
-        vector<bool> segmented_columns_list;
+        std::vector<bool> segmented_columns_list;
 
         // Size of the matrix
         int order;
@@ -163,19 +143,19 @@ namespace nurikabe {
         // Total number of bad patterns after solving.
         int bad_patterns;
         // Vector for keeping track of all the good seeds generated.
-        vector<int> good_seeds;
+        std::vector<int> good_seeds;
 
-        vector<int> water_count;
+        std::vector<int> water_count;
 
         int call_count;
 
-        // A three dimensional space of vectors that keeps track of what seeds can or cannot
+        // A three dimensional space of std::vectors that keeps track of what seeds can or cannot
         // be in a certain order.
-        vector<vector<bool>> seed_table;
+        std::vector<std::vector<bool>> seed_table;
 
-        vector<vector<Choices>> decision_table;
+        std::vector<std::vector<Choices>> decision_table;
 
-        vector<vector<vector<bool>>> middle_rows_database;
+        std::vector<std::vector<std::vector<bool>>> middle_rows_database;
     };
 
 }
