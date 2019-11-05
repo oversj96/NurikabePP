@@ -6,8 +6,9 @@
 
 int main()
 {
-    shape_generator sg(2);
-    std::cout << std::to_string(sg.shapes.size()) << std::endl;
+    shape_generator sg(3);
+    // We add the case with no water manually.
+    std::cout << std::to_string(sg.shapes.size() + 1) << std::endl;
     for (auto shape : sg.shapes) {
         std::cout << "Matrix ID: " << std::to_string(shape.shape_id) << std::endl;
         for (auto &row : shape.shape_map) {

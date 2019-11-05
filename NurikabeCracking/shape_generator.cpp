@@ -49,6 +49,11 @@ shape_generator::~shape_generator()
 {
 }
 
+
+/*
+Needs rewritten so that each subsequent pattern can place a tile at any previous candidate
+position and not just from the last active tile.
+*/
 void shape_generator::run(std::vector<std::vector<int>> candidates, std::vector<std::vector<bool>> map,
     int tiles, int x_dim, int y_dim, int id) {
     // Increment the tile count.
@@ -61,10 +66,11 @@ void shape_generator::run(std::vector<std::vector<int>> candidates, std::vector<
         // Generate the new shape ID based on the previous ID and the new point.
         int new_id = id + value_map[point[0]][point[1]];
         // Determine if the id has been used before.
-        if (umap.find(new_id) == umap.end()) {
-            // Set the point on the map to true to indicate water.
-            auto n_map = map;
-            n_map[point[0]][point[1]] = true;
+        // Set the point on the map to true to indicate water.
+        auto n_map = map;
+        n_map[point[0]][point[1]] = true;
+        std::vector<std::vector<int>> n_cands = shape_generator::determine_candidates(n_map, point);
+        if (umap.find(new_id) == umap.end()) {          
             // Measure the shapes dimensions.
             /*if (point[0] > x_dim) {
                 x_dim = point[0];
@@ -84,7 +90,7 @@ void shape_generator::run(std::vector<std::vector<int>> candidates, std::vector<
             // Copy the candidates that remain and update the list, removing any potentially
             // invalid points and adding new ones.
             // Passes cand_copy by reference.
-            std::vector<std::vector<int>> n_cands = shape_generator::determine_candidates(n_map, point);
+            
 
             /*std::cout << "Matrix " << std::to_string(id) << std::endl;
             for (auto const &cand : cand_copy) {
@@ -95,8 +101,8 @@ void shape_generator::run(std::vector<std::vector<int>> candidates, std::vector<
             shape_generator::run(n_cands, n_map, tiles, x_dim, y_dim, new_id);
         }
         else {
-            std::cout << std::to_string(new_id) << " already exists and tile count is: " << std::to_string(tiles) << std::endl;
-        }
+            shape_generator::run(n_cands, n_map, tiles, x_dim, y_dim, new_id);
+        }       
     }
 }
 
