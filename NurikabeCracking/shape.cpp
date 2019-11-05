@@ -15,6 +15,7 @@ shape::shape(const shape &s2) {
     shape::shape_map = s2.shape_map;
     shape::x_dimension = s2.x_dimension;
     shape::y_dimension = s2.y_dimension;
+    shape::shape_id = s2.shape_id;
 }
 
 shape::shape() {
@@ -23,6 +24,7 @@ shape::shape() {
     shape::shape_map = empty;
     shape::x_dimension = 0;
     shape::y_dimension = 0;
+    shape::shape_id = 0;
 }
 
 

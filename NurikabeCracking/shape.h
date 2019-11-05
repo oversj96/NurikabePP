@@ -13,6 +13,7 @@ public:
     auto get_shape_vec() const;
     int shape_id;
     std::vector<std::vector<bool>> shape_map;
+
 private:
     int tile_count = 0;  
     int x_dimension = 0;

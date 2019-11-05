@@ -21,10 +21,11 @@ public:
     bool in_bounds(const std::vector<std::vector<bool>> &map, std::vector<int> point);
 
     std::vector<std::vector<int>> determine_candidates(const std::vector<std::vector<bool>> &map,
-        std::vector<int> point, std::vector<std::vector<int>> candidates);
+        std::vector<int> point);
 
     int distinct_count() const;
 private:
+    std::vector<std::vector<int>> value_map;
     int max_dimension = 0;
     int shape_count = 0;
 };
