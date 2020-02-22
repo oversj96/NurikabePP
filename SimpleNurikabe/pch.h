@@ -9,17 +9,9 @@
 #ifndef PCH_H
 #define PCH_H
 #include <vector>
-#include <stack>
-#include <string>
-#include <cmath>
 #include <iostream>
-#include <iomanip>
-#include <numeric>
+#include <string>
 #include <algorithm>
-#include <chrono>
-#include <unordered_set>
-#include <random>
-
 // TODO: add headers that you want to pre-compile here
 
 #endif //PCH_H
