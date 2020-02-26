@@ -19,6 +19,7 @@ public:
     RowBrain(int length);
     ~RowBrain();
     std::vector<std::vector<bool>> triviallyLegalRows;
+    std::vector<std::vector<std::vector<char>>> partitionSets;
     std::vector<std::vector<std::shared_ptr<Row>>> successorRows;
     std::vector<std::shared_ptr<Row>> rows;
     void countPatterns(std::vector<std::shared_ptr<Row>> puzzle, int rowNum);
@@ -26,6 +27,7 @@ public:
     int patterns = 0;
     static std::vector<std::vector<char>> partitionerStrings(int length);
     size_t maxRowPatterns;
+    void countPartitions();
 private:
     int length;
     bool formsPool(std::shared_ptr<Row> r1, std::shared_ptr<Row> r2);

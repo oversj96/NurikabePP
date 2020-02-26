@@ -4,7 +4,19 @@
 
 RowBrain::RowBrain(int length)
 {
-    RowBrain::length = length;
+    if (length % 2 == 0) {
+        for (size_t i = 0; i < length / 2; ++i) {
+            RowBrain::partitionSets.push_back(RowBrain::partitionerStrings(i));
+        }
+    }
+    else {
+        for (size_t i = 0; i < std::ceil(length / 2); ++i) {
+            RowBrain::partitionSets.push_back(RowBrain::partitionerStrings(i));
+        }
+    }
+    
+
+    /*RowBrain::length = length;
     RowBrain::maxRowPatterns = std::pow(2, RowBrain::length);   
     RowBrain::rows.reserve(RowBrain::maxRowPatterns); 
     for (size_t i = 0; i < RowBrain::maxRowPatterns; ++i) {
@@ -24,12 +36,29 @@ RowBrain::RowBrain(int length)
             row.push_back(!formsPool(rows[i], rows[j]) && isContiguous(rows[i], rows[j]));
         }
         RowBrain::triviallyLegalRows.push_back(row);
-    }
+    }*/
 }
 
 
 RowBrain::~RowBrain()
 {
+}
+
+void RowBrain::countPartitions() {
+    for (const auto &partitionStrings : RowBrain::partitionSets) {
+        for (size_t i = 0; i < partitionStrings.size(); ++i) {
+            std::cout << std::to_string(i + 1) << ": [";
+            for (size_t j = 0; j < partitionStrings[i].size(); ++j) {
+                if (j != partitionStrings[i].size() - 1) {
+                    std::cout << std::to_string(partitionStrings[i][j]) << ", ";
+                }
+                else {
+                    std::cout << std::to_string(partitionStrings[i][j]) << "]" << std::endl;
+                }
+            }
+        }
+        std::cin.get();
+    }   
 }
 
 std::vector<std::vector<char>> RowBrain::partitionerStrings(int length) {
@@ -41,7 +70,7 @@ std::vector<std::vector<char>> RowBrain::partitionerStrings(int length) {
 
     // Initialize rows and push back initial set
     for (int i = 0; i < length; ++i) { mainRow.push_back(0); }
-    for (int i = 0; i < length - 1; ++i) { auxRow.push_back(1); }   
+    for (int i = 0; i < length - 1; ++i) { auxRow.push_back(1); }
     lexicoStrings.push_back(mainRow);
 
     while (incrementable) {
@@ -61,14 +90,14 @@ std::vector<std::vector<char>> RowBrain::partitionerStrings(int length) {
 }
 
 void RowBrain::updateAuxRow(const std::vector<char> &mainRow, std::vector<char> &auxRow) {
-    for (int i = 1; i < mainRow.size(); ++i) {
+    for (size_t i = 1; i < mainRow.size(); ++i) {
         auxRow[i - 1] = *std::max_element(mainRow.begin(), mainRow.begin() + i) + 1;
     }
 }
 
 void RowBrain::setToZero(std::vector<char> &mainRow, int index) {
     if (index != mainRow.size() - 1) {
-        for (int i = index + 1; i < mainRow.size(); ++i) { mainRow[i] = 0; }
+        for (size_t i = index + 1; i < mainRow.size(); ++i) { mainRow[i] = 0; }
     }
 }
 

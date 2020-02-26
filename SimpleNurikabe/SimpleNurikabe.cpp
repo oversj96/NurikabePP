@@ -23,17 +23,9 @@ int main()
     std::cin.get();
 */
 
-    std::vector<std::vector<char>> strings = RowBrain::partitionerStrings(6);
-
-    for (auto const &str : strings) {
-        std::cout << "[";
-        for (auto item : str) {
-            std::cout << std::to_string(item) << ", ";
-        }
-        std::cout << "]" << std::endl;
-    }
-    std::cout << std::to_string(strings.size()) << std::endl;
-    std::cin.get();
+    RowBrain brain(20);
+    brain.countPartitions();
+    
     return 0;
 }
 
