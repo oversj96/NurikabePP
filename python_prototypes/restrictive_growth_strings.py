@@ -46,7 +46,7 @@ def restrictive_growth_strings(length):
 
 if __name__ == "__main__":
     elements = [1, 2, 3, 4]
-    strings = restrictive_growth_strings_two(len(elements))
+    strings = restrictive_growth_strings(len(elements))
     print(len(strings))
     for string in strings:
         print(string)
