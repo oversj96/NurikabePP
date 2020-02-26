@@ -48,6 +48,9 @@ void RowBrain::countPartitions() {
     for (const auto &partitionStrings : RowBrain::partitionSets) {
         for (size_t i = 0; i < partitionStrings.size(); ++i) {
             std::cout << std::to_string(i + 1) << ": [";
+            if (partitionStrings[i].empty()) {
+                std::cout << "]" << std::endl;
+            }
             for (size_t j = 0; j < partitionStrings[i].size(); ++j) {
                 if (j != partitionStrings[i].size() - 1) {
                     std::cout << std::to_string(partitionStrings[i][j]) << ", ";

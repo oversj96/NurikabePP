@@ -23,7 +23,7 @@ int main()
     std::cin.get();
 */
 
-    RowBrain brain(20);
+    RowBrain brain(15);
     brain.countPartitions();
     
     return 0;
