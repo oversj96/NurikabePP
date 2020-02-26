@@ -24,11 +24,14 @@ public:
     void countPatterns(std::vector<std::shared_ptr<Row>> puzzle, int rowNum);
     void determineSuccessorRows();
     int patterns = 0;
+    static std::vector<std::vector<char>> partitionerStrings(int length);
     size_t maxRowPatterns;
 private:
     int length;
     bool formsPool(std::shared_ptr<Row> r1, std::shared_ptr<Row> r2);
     bool isContiguous(std::shared_ptr<Row> r1, std::shared_ptr<Row> r2);
+    static void setToZero(std::vector<char> &mainRow, int index);
+    static void updateAuxRow(const std::vector<char> &mainRow, std::vector<char> &auxRow);
 };
 #endif // !ROW_BRAIN_H
 

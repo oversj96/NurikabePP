@@ -45,8 +45,11 @@ def restrictive_growth_strings(length):
 
 
 if __name__ == "__main__":
-    elements = [1, 2, 3, 4]
+    '''A quick way to check if the module works correctly is to compare
+    the partition count to the bell number of the correct 'n' size.
+    For a set of 7 elements, the partition count should be 877 by Bell's numbers.'''
+    elements = [1, 2, 3, 4, 5]
     strings = restrictive_growth_strings(len(elements))
-    print(len(strings))
     for string in strings:
         print(string)
+    print(len(strings))
