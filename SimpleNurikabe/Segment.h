@@ -12,6 +12,8 @@ public:
     int rightMostColumn;
     bool isSingleColumn();
     static std::vector<Segment> makeSegments(const std::vector<char>& bits);
+    void addSegmentColumns(const Segment &s2);
+    bool operator ==(const Segment& s);
 };
 #endif // !SEGMENT_H
 

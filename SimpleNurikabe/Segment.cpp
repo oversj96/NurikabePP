@@ -14,6 +14,11 @@ Segment::~Segment()
 {
 }
 
+bool Segment::operator ==(const Segment &s) {
+    auto other = dynamic_cast<const Segment*>(&s);
+    return other != 0;
+}
+
 bool Segment::isSingleColumn() {
     return Segment::leftMostColumn == Segment::rightMostColumn;
 }
@@ -36,4 +41,10 @@ std::vector<Segment> Segment::makeSegments(const std::vector<char>& bits) {
     }
 
     return segments;
+}
+
+void Segment::addSegmentColumns(const Segment &s2) {
+    for (int key : s2.columns) {
+        Segment::columns.push_back(key);
+    }
 }

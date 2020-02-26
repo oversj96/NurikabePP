@@ -23,7 +23,7 @@ int main()
     std::cin.get();
 */
 
-    std::vector<std::vector<char>> strings = RowBrain::partitionerStrings(10);
+    std::vector<std::vector<char>> strings = RowBrain::partitionerStrings(6);
 
     for (auto const &str : strings) {
         std::cout << "[";
