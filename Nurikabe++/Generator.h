@@ -28,5 +28,6 @@ public:
                       std::vector<short> &auxRow);
     void setToZero(std::vector<short> &mainRow, int index);
     void countPatterns();
+    static void insert_commas(std::string& num);
 };
 #endif // !GENERATOR_H

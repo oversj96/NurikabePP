@@ -22,6 +22,7 @@ Generator::Generator(int depth, int length, bool fastCount)
     }
 
     this->goodPatterns = 0;
+
     // Begin multithreaded tree building.
     int concurentThreadsSupported = std::thread::hardware_concurrency();
     std::vector<std::shared_ptr<boost::thread>> threads;
@@ -71,6 +72,14 @@ void Generator::buildTree(int threadCount, int id)
 }
 
 Generator::~Generator() {}
+
+void Generator::insert_commas(std::string& num) {
+    int insertPosition = num.length() - 3;
+    while (insertPosition > 0) {
+        num.insert(insertPosition, ",");
+        insertPosition -= 3;
+    }
+}
 
 void Generator::genSetOfPartSets()
 {
