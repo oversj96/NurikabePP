@@ -25,6 +25,6 @@ public:
     bool isPartiallyContiguous(Row &other);
     static void mapNodes(Row &top, Row &bottom);
     static std::vector<char> mapRow(std::shared_ptr<Node> topNode,
-                                     Row &bottomRow);
+                                    Row &bottomRow);
 };
 #endif // !ROW_H

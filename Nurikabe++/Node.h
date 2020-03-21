@@ -36,8 +36,8 @@ public:
     void printPuzzle(std::vector<std::vector<char>> puzzleRows);
     static std::vector<char> generatebits(int seed, int length);
 
-    template<typename T>
-    static typename std::vector<T>::iterator insert_sorted(std::vector<T> & vec, T const& item);
+    template <typename T>
+    static typename std::vector<T>::iterator insert_sorted(std::vector<T> &vec, T const &item);
 };
 
 #endif // !NODE_H

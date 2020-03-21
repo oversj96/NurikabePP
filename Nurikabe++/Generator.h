@@ -20,11 +20,11 @@ public:
         partitionSets;
     std::vector<Row> rows;
 
-    int nodeCount; 
+    int nodeCount;
     Generator(int depth, int length, bool fastCount);
     ~Generator();
     void genSetOfPartSets();
-    
+
     void restrictedGrowthStrings(int setLength);
     void buildTree(int threadcount, int id);
     void updateAuxRow(std::vector<char> &mainRow,
@@ -32,7 +32,7 @@ public:
     void setToZero(std::vector<char> &mainRow, int index);
     void countPatterns();
     void countPatternsMulti(int threadCount, int id);
-    static void insert_commas(std::string& num);
+    static void insert_commas(std::string &num);
 
     static void writeSeedsToFile(std::vector<unsigned long long> &seeds, std::string fileName);
     void rowDetails();
@@ -41,6 +41,6 @@ public:
     static void compareFiles(std::string fileName1, std::string fileName2);
 
     template <typename T>
-    static T mean(const std::vector<T>& v);
+    static T mean(const std::vector<T> &v);
 };
 #endif // !GENERATOR_H

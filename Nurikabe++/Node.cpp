@@ -142,10 +142,8 @@ bool Node::connectsAllPartitions(std::shared_ptr<Node> other)
             }
         }
     }
-    return std::all_of
-    (
-        connections.begin(), connections.end(), [](bool v) { return v; }
-    );
+    return std::all_of(
+        connections.begin(), connections.end(), [](bool v) { return v; });
 }
 
 boost::multiprecision::cpp_int
@@ -324,15 +322,19 @@ void Node::printPuzzle(std::vector<std::vector<char>> rows)
     Pattern pat(rows[0].size(), rows, false);
     mtx_.lock();
     ++Node::debugCount;
-    if (Node::debugCount % interval == 0) {
+    if (Node::debugCount % interval == 0)
+    {
         Node::patternSeeds.push_back(pat.patternSeed);
-        if (!pat.isLegal || pat.patternSeed == 4465420545 || pat.patternSeed == 4465422466) {
+        if (!pat.isLegal || pat.patternSeed == 4465420545 || pat.patternSeed == 4465422466)
+        {
             std::cout << pat.patternString();
             std::cin.get();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        else {
-            if (Node::debugCount % 10000 == 0) {
+        else
+        {
+            if (Node::debugCount % 10000 == 0)
+            {
                 std::cout << Node::debugCount << "\n";
                 std::cout << pat.patternString() << std::endl;
             }
@@ -341,13 +343,11 @@ void Node::printPuzzle(std::vector<std::vector<char>> rows)
     mtx_.unlock();
 }
 
-template<typename T>
+template <typename T>
 typename std::vector<T>::iterator
-Node::insert_sorted(std::vector<T> & vec, T const& item)
+Node::insert_sorted(std::vector<T> &vec, T const &item)
 {
-    return vec.insert
-    (
+    return vec.insert(
         std::upper_bound(vec.begin(), vec.end(), item),
-        item
-    );
+        item);
 }

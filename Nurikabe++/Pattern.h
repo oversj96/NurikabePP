@@ -15,7 +15,7 @@ public:
     std::vector<int> firstWaterPoint;
     std::vector<std::vector<bool>> travelMap;
     unsigned int waterCount;
-    unsigned int waterReachable;   
+    unsigned int waterReachable;
     unsigned long long patternSeed;
 
     Pattern(unsigned int rowLength, std::vector<std::vector<char>> rows, bool test);
@@ -35,6 +35,3 @@ public:
     static boost::multiprecision::cpp_int bigpow(boost::multiprecision::cpp_int lhs, boost::multiprecision::cpp_int rhs);
 };
 #endif // !PATTERN_H
-
-
-

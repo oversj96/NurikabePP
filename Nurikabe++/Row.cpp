@@ -71,13 +71,13 @@ void Row::createNodes()
             {
                 this->nodes.push_back(
                     std::make_shared<Node>(Node(this->segments, this->length,
-                        this->seed, true, false, partSets[i])));
+                                                this->seed, true, false, partSets[i])));
             }
             else
             {
                 this->nodes.push_back(std::make_shared<Node>(
                     Node(this->segments, this->length, this->seed, false, false,
-                        partSets[i])));
+                         partSets[i])));
             }
         }
     }
@@ -85,7 +85,7 @@ void Row::createNodes()
     {
         this->nodes.push_back(
             std::make_shared<Node>(Node(this->segments, this->length, this->seed,
-                true, true, std::make_shared<std::vector<char>>(std::vector<char>{}))));
+                                        true, true, std::make_shared<std::vector<char>>(std::vector<char>{}))));
     }
 }
 
@@ -187,7 +187,7 @@ std::vector<char> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
             if (connectiveList[i].size() != 0)
             {
                 minVals.push_back(*std::min_element(connectiveList[i].begin(),
-                    connectiveList[i].end()));
+                                                    connectiveList[i].end()));
             }
             else
             {
@@ -205,10 +205,10 @@ std::vector<char> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
                     if (j != i)
                     {
                         if (std::find(connectiveList[j].begin(), connectiveList[j].end(),
-                            minVals[i]) != connectiveList[j].end())
+                                      minVals[i]) != connectiveList[j].end())
                         {
                             char contextMin = *std::min_element(connectiveList[j].begin(),
-                                connectiveList[j].end());
+                                                                connectiveList[j].end());
                             if (contextMin != minVals[i])
                             {
                                 minVals[i] = contextMin;
