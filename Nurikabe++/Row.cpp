@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Row.h"
 
-Row::Row(int seed, int length,
-         std::shared_ptr<std::vector<std::vector<std::vector<short>>>>
-             setOfPartitionSet)
+std::unique_ptr<std::vector<std::vector<std::shared_ptr<std::vector<char>>>>>
+    Row::setOfPartitionSets;
+
+Row::Row(int seed, int length)
 {
     this->seed = seed;
     this->length = length;
-    this->setOfPartitionSets = setOfPartitionSet;
     this->generatebits();
     this->createSegments();
     this->isPartitionless = (this->segments.size() == 0);
@@ -60,24 +60,24 @@ void Row::createNodes()
 {
     if (!this->isPartitionless)
     {
-        std::vector<short>::iterator it;
-        auto partSets = this->setOfPartitionSets->at(this->segments.size());
+        std::vector<char>::iterator it;
+        auto partSets = Row::setOfPartitionSets->at(this->segments.size());
         for (int i = 0; i < partSets.size(); ++i)
         {
-            short maxElement =
-                *std::max_element(partSets[i].begin(), partSets[i].end());
+            char maxElement =
+                *std::max_element(partSets[i]->begin(), partSets[i]->end());
 
-            if (maxElement == partSets[i].size() - 1)
+            if (maxElement == partSets[i]->size() - 1)
             {
                 this->nodes.push_back(
                     std::make_shared<Node>(Node(this->segments, this->length,
-                                                this->seed, true, false, partSets[i])));
+                        this->seed, true, false, partSets[i])));
             }
             else
             {
                 this->nodes.push_back(std::make_shared<Node>(
                     Node(this->segments, this->length, this->seed, false, false,
-                         partSets[i])));
+                        partSets[i])));
             }
         }
     }
@@ -85,7 +85,7 @@ void Row::createNodes()
     {
         this->nodes.push_back(
             std::make_shared<Node>(Node(this->segments, this->length, this->seed,
-                                        true, true, std::vector<short>{})));
+                true, true, std::make_shared<std::vector<char>>(std::vector<char>{}))));
     }
 }
 
@@ -125,11 +125,11 @@ void Row::mapNodes(Row &top, Row &bottom)
 {
     for (int i = 0; i < top.nodes.size(); ++i)
     {
-        std::vector<short> legalSet = Row::mapRow(top.nodes[i], bottom);
+        std::vector<char> legalSet = Row::mapRow(top.nodes[i], bottom);
 
         for (int j = 0; j < bottom.nodes.size(); ++j)
         {
-            if (legalSet == bottom.nodes[j]->partitionSet)
+            if (legalSet == *bottom.nodes[j]->partitionSet)
             {
                 if (top.nodes[i]->isInode(bottom.nodes[j]))
                 {
@@ -147,16 +147,16 @@ void Row::mapNodes(Row &top, Row &bottom)
     }
 }
 
-std::vector<short> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
+std::vector<char> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
 {
     if (bottomRow.segments.size() == 0)
     {
-        return std::vector<short>{};
+        return std::vector<char>{};
     }
 
     else if (topNode->segments.size() == 0)
     {
-        std::vector<short> set;
+        std::vector<char> set;
         for (int i = 0; i < bottomRow.segments.size(); ++i)
         {
             set.push_back(i);
@@ -166,28 +166,28 @@ std::vector<short> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
 
     else
     {
-        std::vector<std::vector<short>> connectiveList;
-        for (short i = 0; i < (short)bottomRow.segments.size(); ++i)
+        std::vector<std::vector<char>> connectiveList;
+        for (char i = 0; i < (char)bottomRow.segments.size(); ++i)
         {
-            std::vector<short> connections;
-            for (short j = 0; j < (short)topNode->partitionSet.size(); ++j)
+            std::vector<char> connections;
+            for (char j = 0; j < (char)topNode->partitionSet->size(); ++j)
             {
                 if (bottomRow.segments[i].connects(topNode->segments[j]))
                 {
-                    connections.push_back(topNode->partitionSet[j]);
+                    connections.push_back(topNode->partitionSet->at(j));
                 }
             }
             connectiveList.push_back(connections);
             connections.clear();
         }
 
-        std::vector<short> minVals;
+        std::vector<char> minVals;
         for (int i = 0; i < connectiveList.size(); ++i)
         {
             if (connectiveList[i].size() != 0)
             {
                 minVals.push_back(*std::min_element(connectiveList[i].begin(),
-                                                    connectiveList[i].end()));
+                    connectiveList[i].end()));
             }
             else
             {
@@ -205,10 +205,10 @@ std::vector<short> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
                     if (j != i)
                     {
                         if (std::find(connectiveList[j].begin(), connectiveList[j].end(),
-                                      minVals[i]) != connectiveList[j].end())
+                            minVals[i]) != connectiveList[j].end())
                         {
-                            short contextMin = *std::min_element(connectiveList[j].begin(),
-                                                                 connectiveList[j].end());
+                            char contextMin = *std::min_element(connectiveList[j].begin(),
+                                connectiveList[j].end());
                             if (contextMin != minVals[i])
                             {
                                 minVals[i] = contextMin;
@@ -240,14 +240,14 @@ std::vector<short> Row::mapRow(std::shared_ptr<Node> topNode, Row &bottomRow)
             }
         }
 
-        std::vector<short> seen;
-        std::vector<std::vector<short>> locsOfSeen;
+        std::vector<char> seen;
+        std::vector<std::vector<char>> locsOfSeen;
         for (int i = 0; i < minVals.size(); ++i)
         {
             if (std::find(seen.begin(), seen.end(), minVals[i]) == seen.end())
             {
                 seen.push_back(minVals[i]);
-                std::vector<short> locs;
+                std::vector<char> locs;
                 for (int j = 0; j < minVals.size(); ++j)
                 {
                     if (minVals[j] == minVals[i])

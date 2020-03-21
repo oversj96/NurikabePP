@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <locale>
 #include <algorithm>
 #include <set>
@@ -16,6 +17,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/signals2/mutex.hpp>
 #include <boost/thread.hpp>
+#include <boost/filesystem.hpp>
 // TODO: add headers that you want to pre-compile here
 
 #endif // PCH_H

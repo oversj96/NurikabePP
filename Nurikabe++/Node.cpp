@@ -1,11 +1,14 @@
 #include "pch.h"
 #include "Node.h"
+#include "Pattern.h"
 
 unsigned long long Node::debugCount = 0;
+std::vector<unsigned long long> Node::patternSeeds;
+boost::mutex Node::mtx_;
 
 Node::Node(std::vector<Segment> segments, int parentLength,
            unsigned int parentSeed, bool isStart, bool partitionless,
-           std::vector<short> partitionSet)
+           std::shared_ptr<std::vector<char>> partitionSet)
 {
     this->parentLength = parentLength;
     this->segments = segments;
@@ -13,13 +16,13 @@ Node::Node(std::vector<Segment> segments, int parentLength,
     this->isStart = isStart;
     this->isPartitionless = partitionless;
     this->partitionSet = partitionSet;
-    if (this->partitionSet.size() != 0)
+    if (this->partitionSet->size() != 0)
     {
         this->maxElement =
-            *std::max_element(partitionSet.begin(), partitionSet.end());
+            *std::max_element(partitionSet->begin(), partitionSet->end());
     }
     this->uniqueElements =
-        std::set<short>(partitionSet.begin(), partitionSet.end());
+        std::set<char>(partitionSet->begin(), partitionSet->end());
 }
 
 Node::~Node() {}
@@ -33,7 +36,7 @@ bool Node::isInode(std::shared_ptr<Node> other)
         {
             return true;
         }
-        else if (other->maxElement == other->partitionSet.size() - 1)
+        else if (other->maxElement == other->partitionSet->size() - 1)
         {
             return true;
         }
@@ -109,14 +112,14 @@ bool Node::isLeafNode(std::shared_ptr<Node> other)
 bool Node::connectsAllPartitions(std::shared_ptr<Node> other)
 {
     std::vector<bool> connections;
-    for (int i = 0; i < this->partitionSet.size(); ++i)
+    for (int i = 0; i < this->partitionSet->size(); ++i)
     {
         connections.push_back(false);
     }
 
-    for (int i = 0; i < this->partitionSet.size(); ++i)
+    for (int i = 0; i < this->partitionSet->size(); ++i)
     {
-        for (int j = 0; j < other->partitionSet.size(); ++j)
+        for (int j = 0; j < other->partitionSet->size(); ++j)
         {
             if (!connections[i] && this->segments[i].connects(other->segments[j]))
             {
@@ -129,18 +132,20 @@ bool Node::connectsAllPartitions(std::shared_ptr<Node> other)
     {
         if (connections[i])
         {
-            short key = this->partitionSet[i];
+            char key = this->partitionSet->at(i);
             for (int j = 0; j < connections.size(); ++j)
             {
-                if (this->partitionSet[j] == key)
+                if (this->partitionSet->at(j) == key)
                 {
                     connections[j] = true;
                 }
             }
         }
     }
-    return std::all_of(connections.begin(), connections.end(),
-                       [](bool v) { return v; });
+    return std::all_of
+    (
+        connections.begin(), connections.end(), [](bool v) { return v; }
+    );
 }
 
 boost::multiprecision::cpp_int
@@ -241,8 +246,7 @@ unsigned long long Node::traverse(std::vector<std::vector<char>> puzzleRows,
             puzzleRows[depth] =
                 Node::generatebits(this->parentSeed, this->parentLength);
             ++count;
-            ++Node::debugCount;
-            Node::printPuzzle(Node::debugCount, puzzleRows);
+            Node::printPuzzle(puzzleRows);
         }
         else
         {
@@ -256,8 +260,7 @@ unsigned long long Node::traverse(std::vector<std::vector<char>> puzzleRows,
         {
             puzzleRows[depth] =
                 Node::generatebits(node->parentSeed, node->parentLength);
-            ++Node::debugCount;
-            Node::printPuzzle(Node::debugCount, puzzleRows);
+            Node::printPuzzle(puzzleRows);
             ++count;
         }
     }
@@ -315,16 +318,36 @@ std::vector<char> Node::generatebits(int seed, int length)
     return bits;
 }
 
-void Node::printPuzzle(unsigned long long patCount,
-                       std::vector<std::vector<char>> rows)
+void Node::printPuzzle(std::vector<std::vector<char>> rows)
 {
-    std::cout << "\nPattern: " << std::to_string(patCount) << std::endl;
-    for (auto &row : rows)
-    {
-        for (auto bit : row)
-        {
-            std::cout << std::to_string(bit) << " ";
+    int interval = 1;
+    Pattern pat(rows[0].size(), rows, false);
+    mtx_.lock();
+    ++Node::debugCount;
+    if (Node::debugCount % interval == 0) {
+        Node::patternSeeds.push_back(pat.patternSeed);
+        if (!pat.isLegal || pat.patternSeed == 4465420545 || pat.patternSeed == 4465422466) {
+            std::cout << pat.patternString();
+            std::cin.get();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        std::cout << std::endl;
+        else {
+            if (Node::debugCount % 10000 == 0) {
+                std::cout << Node::debugCount << "\n";
+                std::cout << pat.patternString() << std::endl;
+            }
+        }
     }
+    mtx_.unlock();
+}
+
+template<typename T>
+typename std::vector<T>::iterator
+Node::insert_sorted(std::vector<T> & vec, T const& item)
+{
+    return vec.insert
+    (
+        std::upper_bound(vec.begin(), vec.end(), item),
+        item
+    );
 }
